@@ -1,0 +1,151 @@
+User Observees API
+
+
+API for accessing information about the users a user is observing.
+
+
+A PairingCode object looks like:
+
+// A code used for linking a user to a student to observe them.
+{
+  // The ID of the user.
+  "user_id": 2,
+  // The actual code to be sent to other APIs
+  "code": "abc123",
+  // When the code expires
+  "expires_at": "2012-05-30T17:45:25Z",
+  // The current status of the code
+  "workflow_state": "active"
+}
+
+
+List observeesUserObserveesController#index
+
+
+
+GET /api/v1/users/:user_id/observees
+
+A paginated list of the users that the given user is observing.
+Note:all users are allowed to list their own observees. Administrators can list other usersâ observees.
+The returned observees will include an attribute âobservation_link_root_account_idsâ, a list of ids for the root accounts the observer and observee are linked on. The observer will only be able to observe in courses associated with these root accounts.
+Parameter |  | Type | Description
+include[] |  | string | âavatar_urlâ: Optionally include avatar_url.Allowed values:avatar_url
+
+âavatar_urlâ: Optionally include avatar_url.
+Allowed values:avatar_url
+curl https://<canvas>/api/v1/users/<user_id>/observees \
+     -X GET \
+     -H 'Authorization: Bearer <token>'
+
+
+List observersUserObserveesController#observers
+
+
+
+GET /api/v1/users/:user_id/observers
+
+A paginated list of the observers of a given user.
+Note:all users are allowed to list their own observers. Administrators can list other usersâ observers.
+The returned observers will include an attribute âobservation_link_root_account_idsâ, a list of ids for the root accounts the observer and observee are linked on. The observer will only be able to observe in courses associated with these root accounts.
+Parameter |  | Type | Description
+include[] |  | string | âavatar_urlâ: Optionally include avatar_url.Allowed values:avatar_url
+
+âavatar_urlâ: Optionally include avatar_url.
+Allowed values:avatar_url
+curl https://<canvas>/api/v1/users/<user_id>/observers \
+     -X GET \
+     -H 'Authorization: Bearer <token>'
+
+
+Add an observee with credentialsUserObserveesController#create
+
+
+
+POST /api/v1/users/:user_id/observees
+
+Register the given user to observe another user, given the observeeâs credentials.
+Note:all users are allowed to add their own observees, given the observeeâs credentials or access token are provided. Administrators can add observees given credentials, access token or theobserveeâs id.
+Parameter |  | Type | Description
+observee[unique_id] |  | string | The login id for the user to observe.  Required if access_token is omitted.
+observee[password] |  | string | The password for the user to observe. Required if access_token is omitted.
+access_token |  | string | The access token for the user to observe.  Required ifobservee[unique_id]orobservee[password]are omitted.
+pairing_code |  | string | A generated pairing code for the user to observe. Required if the Observer pairing code feature flag is enabled
+root_account_id |  | integer | The ID for the root account to associate with the observation link. Defaults to the current domain account. If âallâ is specified, a link will be created for each root account associated to both the observer and observee.
+
+The login id for the user to observe.  Required if access_token is omitted.
+The password for the user to observe. Required if access_token is omitted.
+The access token for the user to observe.  Required ifobservee[unique_id]orobservee[password]are omitted.
+A generated pairing code for the user to observe. Required if the Observer pairing code feature flag is enabled
+The ID for the root account to associate with the observation link. Defaults to the current domain account. If âallâ is specified, a link will be created for each root account associated to both the observer and observee.
+curl https://<canvas>/api/v1/users/<user_id>/observees \
+     -X POST \
+     -H 'Authorization: Bearer <token>' \
+     -F 'observee[unique_id]=UNIQUE_ID' \
+     -F 'observee[password]=PASSWORD'
+
+
+Show an observeeUserObserveesController#show
+
+
+
+GET /api/v1/users/:user_id/observees/:observee_id
+
+Gets information about an observed user.
+Note:all users are allowed to view their own observees.
+curl https://<canvas>/api/v1/users/<user_id>/observees/<observee_id> \
+     -X GET \
+     -H 'Authorization: Bearer <token>'
+
+
+Show an observerUserObserveesController#show_observer
+
+
+
+GET /api/v1/users/:user_id/observers/:observer_id
+
+Gets information about an observer.
+Note:all users are allowed to view their own observers.
+curl https://<canvas>/api/v1/users/<user_id>/observers/<observer_id> \
+     -X GET \
+     -H 'Authorization: Bearer <token>'
+
+
+Add an observeeUserObserveesController#update
+
+
+
+PUT /api/v1/users/:user_id/observees/:observee_id
+
+Registers a user as being observed by the given user.
+Parameter |  | Type | Description
+root_account_id |  | integer | The ID for the root account to associate with the observation link. If not specified, a link will be created for each root account associated to both the observer and observee.
+
+The ID for the root account to associate with the observation link. If not specified, a link will be created for each root account associated to both the observer and observee.
+curl https://<canvas>/api/v1/users/<user_id>/observees/<observee_id> \
+     -X PUT \
+     -H 'Authorization: Bearer <token>'
+
+
+Remove an observeeUserObserveesController#destroy
+
+
+
+DELETE /api/v1/users/:user_id/observees/:observee_id
+
+Unregisters a user as being observed by the given user.
+Parameter |  | Type | Description
+root_account_id |  | integer | If specified, only removes the link for the given root account
+
+If specified, only removes the link for the given root account
+curl https://<canvas>/api/v1/users/<user_id>/observees/<observee_id> \
+     -X DELETE \
+     -H 'Authorization: Bearer <token>'
+
+
+Create observer pairing codeObserverPairingCodesApiController#create
+
+
+
+POST /api/v1/users/:user_id/observer_pairing_codes
+
+If the user is a student, will generate a code to be used with self registration or observees APIs to link another user to this student.

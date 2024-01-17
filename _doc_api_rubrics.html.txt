@@ -1,0 +1,377 @@
+Rubrics API
+
+
+API for accessing rubric information.
+
+
+A Rubric object looks like:
+
+{
+  // the ID of the rubric
+  "id": 1,
+  // title of the rubric
+  "title": "some title",
+  // the context owning the rubric
+  "context_id": 1,
+  "context_type": "Course",
+  "points_possible": 10.0,
+  "reusable": false,
+  "read_only": true,
+  // whether or not free-form comments are used
+  "free_form_criterion_comments": true,
+  "hide_score_total": true,
+  // An array with all of this Rubric's grading Criteria
+  "data": null,
+  // If an assessment type is included in the 'include' parameter, includes an
+  // array of rubric assessment objects for a given rubric, based on the
+  // assessment type requested. If the user does not request an assessment type
+  // this key will be absent.
+  "assessments": null,
+  // If an association type is included in the 'include' parameter, includes an
+  // array of rubric association objects for a given rubric, based on the
+  // association type requested. If the user does not request an association type
+  // this key will be absent.
+  "associations": null
+}
+
+
+A RubricCriterion object looks like:
+
+{
+  // the ID of the criterion
+  "id": "_10",
+  "description": null,
+  "long_description": null,
+  "points": 5,
+  "criterion_use_range": false,
+  // the possible ratings for this Criterion
+  "ratings": null
+}
+
+
+A RubricRating object looks like:
+
+{
+  "id": "name_2",
+  "criterion_id": "_10",
+  "description": null,
+  "long_description": null,
+  "points": 5
+}
+
+
+A RubricAssessment object looks like:
+
+{
+  // the ID of the rubric
+  "id": 1,
+  // the rubric the assessment belongs to
+  "rubric_id": 1,
+  "rubric_association_id": 2,
+  "score": 5.0,
+  // the object of the assessment
+  "artifact_type": "Submission",
+  // the id of the object of the assessment
+  "artifact_id": 3,
+  // the current number of attempts made on the object of the assessment
+  "artifact_attempt": 2,
+  // the type of assessment. values will be either 'grading', 'peer_review', or
+  // 'provisional_grade'
+  "assessment_type": "grading",
+  // user id of the person who made the assessment
+  "assessor_id": 6,
+  // (Optional) If 'full' is included in the 'style' parameter, returned
+  // assessments will have their full details contained in their data hash. If the
+  // user does not request a style, this key will be absent.
+  "data": null,
+  // (Optional) If 'comments_only' is included in the 'style' parameter, returned
+  // assessments will include only the comments portion of their data hash. If the
+  // user does not request a style, this key will be absent.
+  "comments": null
+}
+
+
+A RubricAssociation object looks like:
+
+{
+  // the ID of the association
+  "id": 1,
+  // the ID of the rubric
+  "rubric_id": 1,
+  // the ID of the object this association links to
+  "association_id": 1,
+  // the type of object this association links to
+  "association_type": "Course",
+  // Whether or not the associated rubric is used for grade calculation
+  "use_for_grading": true,
+  "summary_data": "",
+  // Whether or not the association is for grading (and thus linked to an
+  // assignment) or if it's to indicate the rubric should appear in its context.
+  // Values will be grading or bookmark.
+  "purpose": "grading",
+  // Whether or not the score total is displayed within the rubric. This option is
+  // only available if the rubric is not used for grading.
+  "hide_score_total": true,
+  "hide_points": true,
+  "hide_outcome_results": true
+}
+
+
+Create a single rubricRubricsController#create
+
+
+
+POST /api/v1/courses/:course_id/rubrics
+
+Returns the rubric with the given id.
+Unfortuantely this endpoint does not return a standard Rubric object, instead it returns a hash that looks like
+{'rubric':Rubric,'rubric_association':RubricAssociation}
+This may eventually be deprecated in favor of a more standardized return value, but that is not currently planned.
+Parameter |  | Type | Description
+id |  | integer | The id of the rubric
+rubric_association_id |  | integer | The id of the object with which this rubric is associated
+rubric[title] |  | string | The title of the rubric
+rubric[free_form_criterion_comments] |  | boolean | Whether or not you can write custom comments in the ratings field for a rubric
+rubric_association[association_id] |  | integer | The id of the object with which this rubric is associated
+rubric_association[association_type] |  | string | The type of object this rubric is associated withAllowed values:Assignment,Course,Account
+rubric_association[use_for_grading] |  | boolean | Whether or not the associated rubric is used for grade calculation
+rubric_association[hide_score_total] |  | boolean | Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+rubric_association[purpose] |  | string | Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its context
+rubric[criteria] |  | Hash | An indexed Hash of RubricCriteria objects where the keys are integer ids and the values are the RubricCriteria objects
+
+The id of the rubric
+The id of the object with which this rubric is associated
+The title of the rubric
+Whether or not you can write custom comments in the ratings field for a rubric
+The id of the object with which this rubric is associated
+The type of object this rubric is associated with
+Allowed values:Assignment,Course,Account
+Whether or not the associated rubric is used for grade calculation
+Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its context
+An indexed Hash of RubricCriteria objects where the keys are integer ids and the values are the RubricCriteria objects
+
+
+Update a single rubricRubricsController#update
+
+
+
+PUT /api/v1/courses/:course_id/rubrics/:id
+
+Returns the rubric with the given id.
+Unfortuantely this endpoint does not return a standard Rubric object, instead it returns a hash that looks like
+{'rubric':Rubric,'rubric_association':RubricAssociation}
+This may eventually be deprecated in favor of a more standardized return value, but that is not currently planned.
+Parameter |  | Type | Description
+id |  | integer | The id of the rubric
+rubric_association_id |  | integer | The id of the object with which this rubric is associated
+rubric[title] |  | string | The title of the rubric
+rubric[free_form_criterion_comments] |  | boolean | Whether or not you can write custom comments in the ratings field for a rubric
+rubric[skip_updating_points_possible] |  | boolean | Whether or not to update the points possible
+rubric_association[association_id] |  | integer | The id of the object with which this rubric is associated
+rubric_association[association_type] |  | string | The type of object this rubric is associated withAllowed values:Assignment,Course,Account
+rubric_association[use_for_grading] |  | boolean | Whether or not the associated rubric is used for grade calculation
+rubric_association[hide_score_total] |  | boolean | Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+rubric_association[purpose] |  | string | Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its contextAllowed values:grading,bookmark
+rubric[criteria] |  | Hash | An indexed Hash of RubricCriteria objects where the keys are integer ids and the values are the RubricCriteria objects
+
+The id of the rubric
+The id of the object with which this rubric is associated
+The title of the rubric
+Whether or not you can write custom comments in the ratings field for a rubric
+Whether or not to update the points possible
+The id of the object with which this rubric is associated
+The type of object this rubric is associated with
+Allowed values:Assignment,Course,Account
+Whether or not the associated rubric is used for grade calculation
+Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its context
+Allowed values:grading,bookmark
+An indexed Hash of RubricCriteria objects where the keys are integer ids and the values are the RubricCriteria objects
+
+
+Delete a single rubricRubricsController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/rubrics/:id
+
+Deletes a Rubric and removes all RubricAssociations.
+
+
+List rubricsRubricsApiController#index
+
+
+
+GET /api/v1/accounts/:account_id/rubrics
+
+
+
+GET /api/v1/courses/:course_id/rubrics
+
+Returns the paginated list of active rubrics for the current context.
+
+
+Get a single rubricRubricsApiController#show
+
+
+
+GET /api/v1/accounts/:account_id/rubrics/:id
+
+
+
+GET /api/v1/courses/:course_id/rubrics/:id
+
+Returns the rubric with the given id.
+Parameter |  | Type | Description
+include[] |  | string | Related records to include in the response.Allowed values:assessments,graded_assessments,peer_assessments,associations,assignment_associations,course_associations,account_associations
+style |  | string | Applicable only if assessments are being returned. If included, returns either all criteria data associated with the assessment, or just the comments. If not included, both data and comments are omitted.Allowed values:full,comments_only
+
+Related records to include in the response.
+Allowed values:assessments,graded_assessments,peer_assessments,associations,assignment_associations,course_associations,account_associations
+Applicable only if assessments are being returned. If included, returns either all criteria data associated with the assessment, or just the comments. If not included, both data and comments are omitted.
+Allowed values:full,comments_only
+
+
+Create a single rubric assessmentRubricAssessmentsController#create
+
+
+
+POST /api/v1/courses/:course_id/rubric_associations/:rubric_association_id/rubric_assessments
+
+Returns the rubric assessment with the given id. The returned object also provides the information of
+:ratings, :assessor_name, :related_group_submissions_and_assessments, :artifact
+Parameter |  | Type | Description
+course_id |  | integer | The id of the course
+rubric_association_id |  | integer | The id of the object with which this rubric assessment is associated
+provisional |  | string | (optional) Indicates whether this assessment is provisional, defaults to false.
+final |  | string | (optional) Indicates a provisional grade will be marked as final. It only takes effect if the provisional param is passed as true. Defaults to false.
+graded_anonymously |  | boolean | (optional) Defaults to false
+rubric_assessment |  | Hash | A Hash of data to complement the rubric assessment: The user id that refers to the person being assessedrubric_assessment[user_id]Assessment type. There are only three valid types:  âgradingâ, âpeer_reviewâ, or âprovisional_gradeârubric_assessment[assessment_type]The points awarded for this row.rubric_assessment[criterion_id][points]Comments to add for this row.rubric_assessment[criterion_id][comments]For each criterion_id, change the id by the criterion number, ex: criterion_123 If the criterion_id is not specified it defaults to false, and nothing is updated.
+
+The id of the course
+The id of the object with which this rubric assessment is associated
+(optional) Indicates whether this assessment is provisional, defaults to false.
+(optional) Indicates a provisional grade will be marked as final. It only takes effect if the provisional param is passed as true. Defaults to false.
+(optional) Defaults to false
+A Hash of data to complement the rubric assessment: The user id that refers to the person being assessed
+rubric_assessment[user_id]
+Assessment type. There are only three valid types:  âgradingâ, âpeer_reviewâ, or âprovisional_gradeâ
+rubric_assessment[assessment_type]
+The points awarded for this row.
+rubric_assessment[criterion_id][points]
+Comments to add for this row.
+rubric_assessment[criterion_id][comments]
+For each criterion_id, change the id by the criterion number, ex: criterion_123 If the criterion_id is not specified it defaults to false, and nothing is updated.
+
+
+Update a single rubric assessmentRubricAssessmentsController#update
+
+
+
+PUT /api/v1/courses/:course_id/rubric_associations/:rubric_association_id/rubric_assessments/:id
+
+Returns the rubric assessment with the given id. The returned object also provides the information of
+:ratings, :assessor_name, :related_group_submissions_and_assessments, :artifact
+Parameter |  | Type | Description
+id |  | integer | The id of the rubric assessment
+course_id |  | integer | The id of the course
+rubric_association_id |  | integer | The id of the object with which this rubric assessment is associated
+provisional |  | string | (optional) Indicates whether this assessment is provisional, defaults to false.
+final |  | string | (optional) Indicates a provisional grade will be marked as final. It only takes effect if the provisional param is passed as true. Defaults to false.
+graded_anonymously |  | boolean | (optional) Defaults to false
+rubric_assessment |  | Hash | A Hash of data to complement the rubric assessment: The user id that refers to the person being assessedrubric_assessment[user_id]Assessment type. There are only three valid types:  âgradingâ, âpeer_reviewâ, or âprovisional_gradeârubric_assessment[assessment_type]The points awarded for this row.rubric_assessment[criterion_id][points]Comments to add for this row.rubric_assessment[criterion_id][comments]For each criterion_id, change the id by the criterion number, ex: criterion_123 If the criterion_id is not specified it defaults to false, and nothing is updated.
+
+The id of the rubric assessment
+The id of the course
+The id of the object with which this rubric assessment is associated
+(optional) Indicates whether this assessment is provisional, defaults to false.
+(optional) Indicates a provisional grade will be marked as final. It only takes effect if the provisional param is passed as true. Defaults to false.
+(optional) Defaults to false
+A Hash of data to complement the rubric assessment: The user id that refers to the person being assessed
+rubric_assessment[user_id]
+Assessment type. There are only three valid types:  âgradingâ, âpeer_reviewâ, or âprovisional_gradeâ
+rubric_assessment[assessment_type]
+The points awarded for this row.
+rubric_assessment[criterion_id][points]
+Comments to add for this row.
+rubric_assessment[criterion_id][comments]
+For each criterion_id, change the id by the criterion number, ex: criterion_123 If the criterion_id is not specified it defaults to false, and nothing is updated.
+
+
+Delete a single rubric assessmentRubricAssessmentsController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/rubric_associations/:rubric_association_id/rubric_assessments/:id
+
+Deletes a rubric assessment
+
+
+Create a RubricAssociationRubricAssociationsController#create
+
+
+
+POST /api/v1/courses/:course_id/rubric_associations
+
+Returns the rubric with the given id.
+Parameter |  | Type | Description
+rubric_association[rubric_id] |  | integer | The id of the Rubric
+rubric_association[association_id] |  | integer | The id of the object with which this rubric is associated
+rubric_association[association_type] |  | string | The type of object this rubric is associated withAllowed values:Assignment,Course,Account
+rubric_association[title] |  | string | The name of the object this rubric is associated with
+rubric_association[use_for_grading] |  | boolean | Whether or not the associated rubric is used for grade calculation
+rubric_association[hide_score_total] |  | boolean | Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+rubric_association[purpose] |  | string | Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its contextAllowed values:grading,bookmark
+rubric_association[bookmarked] |  | boolean | Whether or not the associated rubric appears in its context
+
+The id of the Rubric
+The id of the object with which this rubric is associated
+The type of object this rubric is associated with
+Allowed values:Assignment,Course,Account
+The name of the object this rubric is associated with
+Whether or not the associated rubric is used for grade calculation
+Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its context
+Allowed values:grading,bookmark
+Whether or not the associated rubric appears in its context
+
+
+Update a RubricAssociationRubricAssociationsController#update
+
+
+
+PUT /api/v1/courses/:course_id/rubric_associations/:id
+
+Returns the rubric with the given id.
+Parameter |  | Type | Description
+id |  | integer | The id of the RubricAssociation to update
+rubric_association[rubric_id] |  | integer | The id of the Rubric
+rubric_association[association_id] |  | integer | The id of the object with which this rubric is associated
+rubric_association[association_type] |  | string | The type of object this rubric is associated withAllowed values:Assignment,Course,Account
+rubric_association[title] |  | string | The name of the object this rubric is associated with
+rubric_association[use_for_grading] |  | boolean | Whether or not the associated rubric is used for grade calculation
+rubric_association[hide_score_total] |  | boolean | Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+rubric_association[purpose] |  | string | Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its contextAllowed values:grading,bookmark
+rubric_association[bookmarked] |  | boolean | Whether or not the associated rubric appears in its context
+
+The id of the RubricAssociation to update
+The id of the Rubric
+The id of the object with which this rubric is associated
+The type of object this rubric is associated with
+Allowed values:Assignment,Course,Account
+The name of the object this rubric is associated with
+Whether or not the associated rubric is used for grade calculation
+Whether or not the score total is displayed within the rubric. This option is only available if the rubric is not used for grading.
+Whether or not the association is for grading (and thus linked to an assignment) or if itâs to indicate the rubric should appear in its context
+Allowed values:grading,bookmark
+Whether or not the associated rubric appears in its context
+
+
+Delete a RubricAssociationRubricAssociationsController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/rubric_associations/:id
+
+Delete the RubricAssociation with the given ID

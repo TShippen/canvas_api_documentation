@@ -1,0 +1,64 @@
+Temporary Enrollment Pairings API
+
+
+
+
+A TemporaryEnrollmentPairing object looks like:
+
+// A pairing unique to that enrollment period given to a recipient of that
+// temporary enrollment.
+{
+  // the ID of the temporary enrollment pairing
+  "id": 1,
+  // The current status of the temporary enrollment pairing
+  "workflow_state": "active"
+}
+
+
+List temporary enrollment pairingsTemporaryEnrollmentPairingsApiController#index
+
+
+
+GET /api/v1/accounts/:account_id/temporary_enrollment_pairings
+
+Returns the list of temporary enrollment pairings for a root account.
+
+
+Get a single temporary enrollment pairingTemporaryEnrollmentPairingsApiController#show
+
+
+
+GET /api/v1/accounts/:account_id/temporary_enrollment_pairings/:id
+
+Returns the temporary enrollment pairing with the given id.
+
+
+New TemporaryEnrollmentPairingTemporaryEnrollmentPairingsApiController#new
+
+
+
+GET /api/v1/accounts/:account_id/temporary_enrollment_pairings/new
+
+Initialize an unsaved Temporary Enrollment Pairing.
+
+
+Create Temporary Enrollment PairingTemporaryEnrollmentPairingsApiController#create
+
+
+
+POST /api/v1/accounts/:account_id/temporary_enrollment_pairings
+
+Create a Temporary Enrollment Pairing.
+Parameter |  | Type | Description
+workflow_state |  | string | The workflow state of the temporary enrollment pairing.
+
+The workflow state of the temporary enrollment pairing.
+
+
+Delete Temporary Enrollment PairingTemporaryEnrollmentPairingsApiController#destroy
+
+
+
+DELETE /api/v1/accounts/:account_id/temporary_enrollment_pairings/:id
+
+Delete a temporary enrollment pairing
