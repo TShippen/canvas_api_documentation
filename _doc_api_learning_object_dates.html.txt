@@ -1,0 +1,90 @@
+Learning Object Dates API
+
+
+API for accessing date-related attributes on assignments, quizzes, and modules.
+
+
+A LearningObjectDates object looks like:
+
+{
+  // the ID of the learning object
+  "id": 4,
+  // the due date for the learning object. returns null if not present or
+  // applicable
+  "due_at": "2012-07-01T23:59:00-06:00",
+  // the lock date (learning object is locked after this date). returns null if
+  // not present
+  "lock_at": "2012-07-01T23:59:00-06:00",
+  // the unlock date (learning object is unlocked after this date). returns null
+  // if not present
+  "unlock_at": "2012-07-01T23:59:00-06:00",
+  // whether the learning object is only visible to overrides
+  "only_visible_to_overrides": false,
+  // paginated list of AssignmentOverride objects
+  "overrides": null
+}
+
+
+Get a learning object's date informationLearningObjectDatesController#show
+
+
+
+GET /api/v1/courses/:course_id/assignments/:assignment_id/date_details
+
+
+
+GET /api/v1/courses/:course_id/quizzes/:quiz_id/date_details
+
+
+
+GET /api/v1/courses/:course_id/modules/:context_module_id/date_details
+
+Get a learning objectâs date-related information, including due date, availability dates, override status, and a paginated list of all assignment overrides for the item.
+Note: this API is still under development and will not function until the feature is enabled.
+
+
+Update a learning object's date informationLearningObjectDatesController#update
+
+
+
+PUT /api/v1/courses/:course_id/assignments/:assignment_id/date_details
+
+
+
+PUT /api/v1/courses/:course_id/quizzes/:quiz_id/date_details
+
+Updates date-related information for learning objects, including due date, availability dates, override status, and assignment overrides.
+Returns 204 No Content response code if successful.
+Note: this API is still under development and will not function until the feature is enabled.
+Parameter |  | Type | Description
+due_at |  | DateTime | The learning objectâs due date.
+unlock_at |  | DateTime | The learning objectâs unlock date. Must be before the due date if there is one.
+lock_at |  | DateTime | The learning objectâs lock date. Must be after the due date if there is one.
+only_visible_to_overrides |  | boolean | Whether the learning object is only assigned to students who are targeted by an override.
+assignment_overrides[] |  | Array | List of overrides to apply to the learning object. Overrides that already exist should include an ID and will be updated if needed. New overrides will be created for overrides in the list without an ID. Overrides not included in the list will be deleted. Providing an empty list will delete all of the objectâs overrides. Keys for each override object can include: âidâ, âtitleâ, âstudent_idsâ, and âcourse_section_idâ.
+
+The learning objectâs due date.
+The learning objectâs unlock date. Must be before the due date if there is one.
+The learning objectâs lock date. Must be after the due date if there is one.
+Whether the learning object is only assigned to students who are targeted by an override.
+List of overrides to apply to the learning object. Overrides that already exist should include an ID and will be updated if needed. New overrides will be created for overrides in the list without an ID. Overrides not included in the list will be deleted. Providing an empty list will delete all of the objectâs overrides. Keys for each override object can include: âidâ, âtitleâ, âstudent_idsâ, and âcourse_section_idâ.
+curl https://<canvas>/api/v1/courses/:course_id/assignments/:assignment_id/date_details \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "due_at": "2012-07-01T23:59:00-06:00",
+        "unlock_at": "2012-06-01T00:00:00-06:00",
+        "lock_at": "2012-08-01T00:00:00-06:00",
+        "only_visible_to_overrides": true,
+        "assignment_overrides": [
+          {
+            "id": 212,
+            "course_section_id": 3564
+          },
+          {
+            "title": "an assignment override",
+            "student_ids": [1, 2, 3]
+          }
+        ]
+      }'

@@ -1,0 +1,98 @@
+Quiz Assignment Overrides API
+
+
+
+
+A QuizAssignmentOverrideSet object looks like:
+
+// Set of assignment-overridden dates for a quiz.
+{
+  // ID of the quiz those dates are for.
+  "quiz_id": "1",
+  // An array of quiz assignment overrides. For students, this array will always
+  // contain a single item which is the set of dates that apply to that student.
+  // For teachers and staff, it may contain more.
+  "due_dates": null,
+  // An array of all assignment overrides active for the quiz. This is visible
+  // only to teachers and staff.
+  "all_dates": null
+}
+
+
+A QuizAssignmentOverrideSetContainer object looks like:
+
+// Container for set of assignment-overridden dates for a quiz.
+{
+  // The QuizAssignmentOverrideSet
+  "quiz_assignment_overrides": null
+}
+
+
+A QuizAssignmentOverride object looks like:
+
+// Set of assignment-overridden dates for a quiz.
+{
+  // ID of the assignment override, unless this is the base construct, in which
+  // case the 'id' field is omitted.
+  "id": 1,
+  // The date after which any quiz submission is considered late.
+  "due_at": "2014-02-21T06:59:59Z",
+  // Date when the quiz becomes available for taking.
+  "unlock_at": null,
+  // When the quiz will stop being available for taking. A value of null means it
+  // can always be taken.
+  "lock_at": "2014-02-21T06:59:59Z",
+  // Title of the section this assignment override is for, if any.
+  "title": "Project X",
+  // If this property is present, it means that dates in this structure are not
+  // based on an assignment override, but are instead for all students.
+  "base": true
+}
+
+
+Retrieve assignment-overridden dates for Classic QuizzesQuizzes::QuizAssignmentOverridesController#index
+
+
+
+GET /api/v1/courses/:course_id/quizzes/assignment_overrides
+
+Retrieve the actual due-at, unlock-at, and available-at dates for quizzes based on the assignment overrides active for the current API user.
+Parameter |  | Type | Description
+quiz_assignment_overrides[][quiz_ids][] |  | integer | An array of quiz IDs. If omitted, overrides for all quizzes available to the operating user will be returned.
+
+An array of quiz IDs. If omitted, overrides for all quizzes available to the operating user will be returned.
+{
+   "quiz_assignment_overrides": [{
+     "quiz_id": "1",
+     "due_dates": [QuizAssignmentOverride],
+     "all_dates": [QuizAssignmentOverride]
+   },{
+     "quiz_id": "2",
+     "due_dates": [QuizAssignmentOverride],
+     "all_dates": [QuizAssignmentOverride]
+   }]
+}
+
+
+Retrieve assignment-overridden dates for New QuizzesQuizzes::QuizAssignmentOverridesController#new_quizzes
+
+
+
+GET /api/v1/courses/:course_id/new_quizzes/assignment_overrides
+
+Retrieve the actual due-at, unlock-at, and available-at dates for quizzes based on the assignment overrides active for the current API user.
+Parameter |  | Type | Description
+quiz_assignment_overrides[][quiz_ids][] |  | integer | An array of quiz IDs. If omitted, overrides for all quizzes available to the operating user will be returned.
+
+An array of quiz IDs. If omitted, overrides for all quizzes available to the operating user will be returned.
+{
+   "quiz_assignment_overrides": [{
+     "quiz_id": "1",
+     "due_dates": [QuizAssignmentOverride],
+     "all_dates": [QuizAssignmentOverride]
+   },{
+     "quiz_id": "2",
+     "due_dates": [QuizAssignmentOverride],
+     "all_dates": [QuizAssignmentOverride]
+   }]
+}

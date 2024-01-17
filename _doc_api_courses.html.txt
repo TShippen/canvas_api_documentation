@@ -1,0 +1,940 @@
+Courses API
+
+
+API for accessing course information.
+
+
+A Term object looks like:
+
+{
+  "id": 1,
+  "name": "Default Term",
+  "start_at": "2012-06-01T00:00:00-06:00",
+  "end_at": null
+}
+
+
+A CourseProgress object looks like:
+
+{
+  // total number of requirements from all modules
+  "requirement_count": 10,
+  // total number of requirements the user has completed from all modules
+  "requirement_completed_count": 1,
+  // url to next module item that has an unmet requirement. null if the user has
+  // completed the course or the current module does not require sequential
+  // progress
+  "next_requirement_url": "http://localhost/courses/1/modules/items/2",
+  // date the course was completed. null if the course has not been completed by
+  // this user
+  "completed_at": "2013-06-01T00:00:00-06:00"
+}
+
+
+A Course object looks like:
+
+{
+  // the unique identifier for the course
+  "id": 370663,
+  // the SIS identifier for the course, if defined. This field is only included if
+  // the user has permission to view SIS information.
+  "sis_course_id": null,
+  // the UUID of the course
+  "uuid": "WvAHhY5FINzq5IyRIJybGeiXyFkG3SqHUPb7jZY5",
+  // the integration identifier for the course, if defined. This field is only
+  // included if the user has permission to view SIS information.
+  "integration_id": null,
+  // the unique identifier for the SIS import. This field is only included if the
+  // user has permission to manage SIS information.
+  "sis_import_id": 34,
+  // the full name of the course. If the requesting user has set a nickname for
+  // the course, the nickname will be shown here.
+  "name": "InstructureCon 2012",
+  // the course code
+  "course_code": "INSTCON12",
+  // the actual course name. This field is returned only if the requesting user
+  // has set a nickname for the course.
+  "original_name": "InstructureCon-2012-01",
+  // the current state of the course one of 'unpublished', 'available',
+  // 'completed', or 'deleted'
+  "workflow_state": "available",
+  // the account associated with the course
+  "account_id": 81259,
+  // the root account associated with the course
+  "root_account_id": 81259,
+  // the enrollment term associated with the course
+  "enrollment_term_id": 34,
+  // A list of grading periods associated with the course
+  "grading_periods": null,
+  // the grading standard associated with the course
+  "grading_standard_id": 25,
+  // the grade_passback_setting set on the course
+  "grade_passback_setting": "nightly_sync",
+  // the date the course was created.
+  "created_at": "2012-05-01T00:00:00-06:00",
+  // the start date for the course, if applicable
+  "start_at": "2012-06-01T00:00:00-06:00",
+  // the end date for the course, if applicable
+  "end_at": "2012-09-01T00:00:00-06:00",
+  // the course-set locale, if applicable
+  "locale": "en",
+  // A list of enrollments linking the current user to the course. for student
+  // enrollments, grading information may be included if include[]=total_scores
+  "enrollments": null,
+  // optional: the total number of active and invited students in the course
+  "total_students": 32,
+  // course calendar
+  "calendar": null,
+  // the type of page that users will see when they first visit the course -
+  // 'feed': Recent Activity Dashboard - 'wiki': Wiki Front Page - 'modules':
+  // Course Modules/Sections Page - 'assignments': Course Assignments List -
+  // 'syllabus': Course Syllabus Page other types may be added in the future
+  "default_view": "feed",
+  // optional: user-generated HTML for the course syllabus
+  "syllabus_body": "<p>syllabus html goes here</p>",
+  // optional: the number of submissions needing grading returned only if the
+  // current user has grading rights and include[]=needs_grading_count
+  "needs_grading_count": 17,
+  // optional: the enrollment term object for the course returned only if
+  // include[]=term
+  "term": null,
+  // optional: information on progress through the course returned only if
+  // include[]=course_progress
+  "course_progress": null,
+  // weight final grade based on assignment group percentages
+  "apply_assignment_group_weights": true,
+  // optional: the permissions the user has for the course. returned only for a
+  // single course and include[]=permissions
+  "permissions": {"create_discussion_topic":true,"create_announcement":true},
+  "is_public": true,
+  "is_public_to_auth_users": true,
+  "public_syllabus": true,
+  "public_syllabus_to_auth": true,
+  // optional: the public description of the course
+  "public_description": "Come one, come all to InstructureCon 2012!",
+  "storage_quota_mb": 5,
+  "storage_quota_used_mb": 5,
+  "hide_final_grades": false,
+  "license": "Creative Commons",
+  "allow_student_assignment_edits": false,
+  "allow_wiki_comments": false,
+  "allow_student_forum_attachments": false,
+  "open_enrollment": true,
+  "self_enrollment": false,
+  "restrict_enrollments_to_course_dates": false,
+  "course_format": "online",
+  // optional: this will be true if this user is currently prevented from viewing
+  // the course because of date restriction settings
+  "access_restricted_by_date": false,
+  // The course's IANA time zone name.
+  "time_zone": "America/Denver",
+  // optional: whether the course is set as a Blueprint Course (blueprint fields
+  // require the Blueprint Courses feature)
+  "blueprint": true,
+  // optional: Set of restrictions applied to all locked course objects
+  "blueprint_restrictions": {"content":true,"points":true,"due_dates":false,"availability_dates":false},
+  // optional: Sets of restrictions differentiated by object type applied to
+  // locked course objects
+  "blueprint_restrictions_by_object_type": {"assignment":{"content":true,"points":true},"wiki_page":{"content":true}},
+  // optional: whether the course is set as a template (requires the Course
+  // Templates feature)
+  "template": true
+}
+
+
+A CalendarLink object looks like:
+
+{
+  // The URL of the calendar in ICS format
+  "ics": "https://canvas.instructure.com/feeds/calendars/course_abcdef.ics"
+}
+
+
+List your coursesCoursesController#index
+
+
+
+GET /api/v1/courses
+
+Returns the paginated list of active courses for the current user.
+Parameter |  | Type | Description
+enrollment_type |  | string | When set, only return courses where the user is enrolled as this type. For example, set to âteacherâ to return only courses where the user is enrolled as a Teacher.  This argument is ignored if enrollment_role is given.Allowed values:teacher,student,ta,observer,designer
+enrollment_role |  | string | Deprecated When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a base role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+enrollment_role_id |  | integer | When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a built_in role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+enrollment_state |  | string | When set, only return courses where the user has an enrollment with the given state. This will respect section/course/term date overrides.Allowed values:active,invited_or_pending,completed
+exclude_blueprint_courses |  | boolean | When set, only return courses that are not configured as blueprint courses.
+include[] |  | string | âneeds_grading_countâ: Optional information to include with each Course. When needs_grading_count is given, and the current user has grading rights, the total number of submissions needing grading for all assignments is returned.âsyllabus_bodyâ: Optional information to include with each Course. When syllabus_body is given the user-generated html for the course syllabus is returned.âpublic_descriptionâ: Optional information to include with each Course. When public_description is given the user-generated text for the course public description is returned.âtotal_scoresâ: Optional information to include with each Course. When total_scores is given, any student enrollments will also include the fields âcomputed_current_scoreâ, âcomputed_final_scoreâ, âcomputed_current_gradeâ, and âcomputed_final_gradeâ, as well as (if the user has permission) âunposted_current_scoreâ, âunposted_final_scoreâ, âunposted_current_gradeâ, and âunposted_final_gradeâ (see Enrollment documentation for more information on these fields). This argument is ignored if the course is configured to hide final grades.âcurrent_grading_period_scoresâ: Optional information to include with each Course. When current_grading_period_scores is given and total_scores is given, any student enrollments will also include the fields âhas_grading_periodsâ, âtotals_for_all_grading_periods_optionâ, âcurrent_grading_period_titleâ, âcurrent_grading_period_idâ, current_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, and âcurrent_period_computed_final_gradeâ, as well as (if the user has permission) âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeâ (see Enrollment documentation for more information on these fields). In addition, when this argument is passed, the course will have a âhas_grading_periodsâ attribute on it. This argument is ignored if the total_scores argument is not included. If the course is configured to hide final grades, the following fields are not returned: âtotals_for_all_grading_periods_optionâ, âcurrent_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, âcurrent_period_computed_final_gradeâ, âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeââgrading_periodsâ: Optional information to include with each Course. When grading_periods is given, a list of the grading periods associated with each course is returned.âtermâ: Optional information to include with each Course. When term is given, the information for the enrollment term for each course is returned.âaccountâ: Optional information to include with each Course. When account is given, the account json for each course is returned.âcourse_progressâ: Optional information to include with each Course. When course_progress is given, each course will include a âcourse_progressâ object with the fields: ârequirement_countâ, an integer specifying the total number of requirements in the course, ârequirement_completed_countâ, an integer specifying the total number of requirements in this course that have been completed, and ânext_requirement_urlâ, a string url to the next requirement item, and âcompleted_atâ, the date the course was completed (null if incomplete). ânext_requirement_urlâ will be null if all requirements have been completed or the current module does not require sequential progress. âcourse_progressâ will return an error message if the course is not module based or the user is not enrolled as a student in the course.âsectionsâ: Section enrollment information to include with each Course. Returns an array of hashes containing the section ID (id), section name (name), start and end dates (start_at, end_at), as well as the enrollment type (enrollment_role, e.g. âStudentEnrollmentâ).âstorage_quota_used_mbâ: The amount of storage space used by the files in this courseâtotal_studentsâ: Optional information to include with each Course. Returns an integer for the total amount of active and invited students.âpassback_statusâ: Include the grade passback_statusâfavoritesâ: Optional information to include with each Course. Indicates if the user has marked the course as a favorite course.âteachersâ: Teacher information to include with each Course. Returns an array of hashes containing theUserDisplayinformation for each teacher in the course.âobserved_usersâ: Optional information to include with each Course. Will include data for observed users if the current user has an observer enrollment.âtabsâ: Optional information to include with each Course. Will include the list of tabs configured for each course.  See theList available tabs APIfor more information.âcourse_imageâ: Optional information to include with each Course. Returns course image url if a course image has been set.âbanner_imageâ: Optional information to include with each Course. Returns course banner image url if the course is a Canvas for Elementary subject and a banner image has been set.âconcludedâ: Optional information to include with each Course. Indicates whether the course has been concluded, taking course and term dates into account.Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,grading_periods,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,course_image,banner_image,concluded
+state[] |  | string | If set, only return courses that are in the given state(s). By default, âavailableâ is returned for students and observers, and anything except âdeletedâ, for all other enrollment typesAllowed values:unpublished,available,completed,deleted
+
+When set, only return courses where the user is enrolled as this type. For example, set to âteacherâ to return only courses where the user is enrolled as a Teacher.  This argument is ignored if enrollment_role is given.
+Allowed values:teacher,student,ta,observer,designer
+Deprecated When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a base role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a built_in role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+When set, only return courses where the user has an enrollment with the given state. This will respect section/course/term date overrides.
+Allowed values:active,invited_or_pending,completed
+When set, only return courses that are not configured as blueprint courses.
+âneeds_grading_countâ: Optional information to include with each Course. When needs_grading_count is given, and the current user has grading rights, the total number of submissions needing grading for all assignments is returned.
+âsyllabus_bodyâ: Optional information to include with each Course. When syllabus_body is given the user-generated html for the course syllabus is returned.
+âpublic_descriptionâ: Optional information to include with each Course. When public_description is given the user-generated text for the course public description is returned.
+âtotal_scoresâ: Optional information to include with each Course. When total_scores is given, any student enrollments will also include the fields âcomputed_current_scoreâ, âcomputed_final_scoreâ, âcomputed_current_gradeâ, and âcomputed_final_gradeâ, as well as (if the user has permission) âunposted_current_scoreâ, âunposted_final_scoreâ, âunposted_current_gradeâ, and âunposted_final_gradeâ (see Enrollment documentation for more information on these fields). This argument is ignored if the course is configured to hide final grades.
+âcurrent_grading_period_scoresâ: Optional information to include with each Course. When current_grading_period_scores is given and total_scores is given, any student enrollments will also include the fields âhas_grading_periodsâ, âtotals_for_all_grading_periods_optionâ, âcurrent_grading_period_titleâ, âcurrent_grading_period_idâ, current_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, and âcurrent_period_computed_final_gradeâ, as well as (if the user has permission) âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeâ (see Enrollment documentation for more information on these fields). In addition, when this argument is passed, the course will have a âhas_grading_periodsâ attribute on it. This argument is ignored if the total_scores argument is not included. If the course is configured to hide final grades, the following fields are not returned: âtotals_for_all_grading_periods_optionâ, âcurrent_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, âcurrent_period_computed_final_gradeâ, âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeâ
+âgrading_periodsâ: Optional information to include with each Course. When grading_periods is given, a list of the grading periods associated with each course is returned.
+âtermâ: Optional information to include with each Course. When term is given, the information for the enrollment term for each course is returned.
+âaccountâ: Optional information to include with each Course. When account is given, the account json for each course is returned.
+âcourse_progressâ: Optional information to include with each Course. When course_progress is given, each course will include a âcourse_progressâ object with the fields: ârequirement_countâ, an integer specifying the total number of requirements in the course, ârequirement_completed_countâ, an integer specifying the total number of requirements in this course that have been completed, and ânext_requirement_urlâ, a string url to the next requirement item, and âcompleted_atâ, the date the course was completed (null if incomplete). ânext_requirement_urlâ will be null if all requirements have been completed or the current module does not require sequential progress. âcourse_progressâ will return an error message if the course is not module based or the user is not enrolled as a student in the course.
+âsectionsâ: Section enrollment information to include with each Course. Returns an array of hashes containing the section ID (id), section name (name), start and end dates (start_at, end_at), as well as the enrollment type (enrollment_role, e.g. âStudentEnrollmentâ).
+âstorage_quota_used_mbâ: The amount of storage space used by the files in this course
+âtotal_studentsâ: Optional information to include with each Course. Returns an integer for the total amount of active and invited students.
+âpassback_statusâ: Include the grade passback_status
+âfavoritesâ: Optional information to include with each Course. Indicates if the user has marked the course as a favorite course.
+âteachersâ: Teacher information to include with each Course. Returns an array of hashes containing theUserDisplayinformation for each teacher in the course.
+âobserved_usersâ: Optional information to include with each Course. Will include data for observed users if the current user has an observer enrollment.
+âtabsâ: Optional information to include with each Course. Will include the list of tabs configured for each course.  See theList available tabs APIfor more information.
+âcourse_imageâ: Optional information to include with each Course. Returns course image url if a course image has been set.
+âbanner_imageâ: Optional information to include with each Course. Returns course banner image url if the course is a Canvas for Elementary subject and a banner image has been set.
+âconcludedâ: Optional information to include with each Course. Indicates whether the course has been concluded, taking course and term dates into account.
+Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,grading_periods,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,course_image,banner_image,concluded
+If set, only return courses that are in the given state(s). By default, âavailableâ is returned for students and observers, and anything except âdeletedâ, for all other enrollment types
+Allowed values:unpublished,available,completed,deleted
+
+
+List courses for a userCoursesController#user_index
+
+
+
+GET /api/v1/users/:user_id/courses
+
+Returns a paginated list of active courses for this user. To view the course list for a user other than yourself, you must be either an observer of that user or an administrator.
+Parameter |  | Type | Description
+include[] |  | string | âneeds_grading_countâ: Optional information to include with each Course. When needs_grading_count is given, and the current user has grading rights, the total number of submissions needing grading for all assignments is returned.âsyllabus_bodyâ: Optional information to include with each Course. When syllabus_body is given the user-generated html for the course syllabus is returned.âpublic_descriptionâ: Optional information to include with each Course. When public_description is given the user-generated text for the course public description is returned.âtotal_scoresâ: Optional information to include with each Course. When total_scores is given, any student enrollments will also include the fields âcomputed_current_scoreâ, âcomputed_final_scoreâ, âcomputed_current_gradeâ, and âcomputed_final_gradeâ (see Enrollment documentation for more information on these fields). This argument is ignored if the course is configured to hide final grades.âcurrent_grading_period_scoresâ: Optional information to include with each Course. When current_grading_period_scores is given and total_scores is given, any student enrollments will also include the fields âhas_grading_periodsâ, âtotals_for_all_grading_periods_optionâ, âcurrent_grading_period_titleâ, âcurrent_grading_period_idâ, current_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, and âcurrent_period_computed_final_gradeâ, as well as (if the user has permission) âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeâ (see Enrollment documentation for more information on these fields). In addition, when this argument is passed, the course will have a âhas_grading_periodsâ attribute on it. This argument is ignored if the course is configured to hide final grades or if the total_scores argument is not included.âgrading_periodsâ: Optional information to include with each Course. When grading_periods is given, a list of the grading periods associated with each course is returned.âtermâ: Optional information to include with each Course. When term is given, the information for the enrollment term for each course is returned.âaccountâ: Optional information to include with each Course. When account is given, the account json for each course is returned.âcourse_progressâ: Optional information to include with each Course. When course_progress is given, each course will include a âcourse_progressâ object with the fields: ârequirement_countâ, an integer specifying the total number of requirements in the course, ârequirement_completed_countâ, an integer specifying the total number of requirements in this course that have been completed, and ânext_requirement_urlâ, a string url to the next requirement item, and âcompleted_atâ, the date the course was completed (null if incomplete). ânext_requirement_urlâ will be null if all requirements have been completed or the current module does not require sequential progress. âcourse_progressâ will return an error message if the course is not module based or the user is not enrolled as a student in the course.âsectionsâ: Section enrollment information to include with each Course. Returns an array of hashes containing the section ID (id), section name (name), start and end dates (start_at, end_at), as well as the enrollment type (enrollment_role, e.g. âStudentEnrollmentâ).âstorage_quota_used_mbâ: The amount of storage space used by the files in this courseâtotal_studentsâ: Optional information to include with each Course. Returns an integer for the total amount of active and invited students.âpassback_statusâ: Include the grade passback_statusâfavoritesâ: Optional information to include with each Course. Indicates if the user has marked the course as a favorite course.âteachersâ: Teacher information to include with each Course. Returns an array of hashes containing theUserDisplayinformation for each teacher in the course.âobserved_usersâ: Optional information to include with each Course. Will include data for observed users if the current user has an observer enrollment.âtabsâ: Optional information to include with each Course. Will include the list of tabs configured for each course.  See theList available tabs APIfor more information.âcourse_imageâ: Optional information to include with each Course. Returns course image url if a course image has been set.âbanner_imageâ: Optional information to include with each Course. Returns course banner image url if the course is a Canvas for Elementary subject and a banner image has been set.âconcludedâ: Optional information to include with each Course. Indicates whether the course has been concluded, taking course and term dates into account.Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,grading_periods,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,course_image,banner_image,concluded
+state[] |  | string | If set, only return courses that are in the given state(s). By default, âavailableâ is returned for students and observers, and anything except âdeletedâ, for all other enrollment typesAllowed values:unpublished,available,completed,deleted
+enrollment_state |  | string | When set, only return courses where the user has an enrollment with the given state. This will respect section/course/term date overrides.Allowed values:active,invited_or_pending,completed
+homeroom |  | boolean | If set, only return homeroom courses.
+account_id |  | string | If set, only include courses associated with this account
+
+âneeds_grading_countâ: Optional information to include with each Course. When needs_grading_count is given, and the current user has grading rights, the total number of submissions needing grading for all assignments is returned.
+âsyllabus_bodyâ: Optional information to include with each Course. When syllabus_body is given the user-generated html for the course syllabus is returned.
+âpublic_descriptionâ: Optional information to include with each Course. When public_description is given the user-generated text for the course public description is returned.
+âtotal_scoresâ: Optional information to include with each Course. When total_scores is given, any student enrollments will also include the fields âcomputed_current_scoreâ, âcomputed_final_scoreâ, âcomputed_current_gradeâ, and âcomputed_final_gradeâ (see Enrollment documentation for more information on these fields). This argument is ignored if the course is configured to hide final grades.
+âcurrent_grading_period_scoresâ: Optional information to include with each Course. When current_grading_period_scores is given and total_scores is given, any student enrollments will also include the fields âhas_grading_periodsâ, âtotals_for_all_grading_periods_optionâ, âcurrent_grading_period_titleâ, âcurrent_grading_period_idâ, current_period_computed_current_scoreâ, âcurrent_period_computed_final_scoreâ, âcurrent_period_computed_current_gradeâ, and âcurrent_period_computed_final_gradeâ, as well as (if the user has permission) âcurrent_period_unposted_current_scoreâ, âcurrent_period_unposted_final_scoreâ, âcurrent_period_unposted_current_gradeâ, and âcurrent_period_unposted_final_gradeâ (see Enrollment documentation for more information on these fields). In addition, when this argument is passed, the course will have a âhas_grading_periodsâ attribute on it. This argument is ignored if the course is configured to hide final grades or if the total_scores argument is not included.
+âgrading_periodsâ: Optional information to include with each Course. When grading_periods is given, a list of the grading periods associated with each course is returned.
+âtermâ: Optional information to include with each Course. When term is given, the information for the enrollment term for each course is returned.
+âaccountâ: Optional information to include with each Course. When account is given, the account json for each course is returned.
+âcourse_progressâ: Optional information to include with each Course. When course_progress is given, each course will include a âcourse_progressâ object with the fields: ârequirement_countâ, an integer specifying the total number of requirements in the course, ârequirement_completed_countâ, an integer specifying the total number of requirements in this course that have been completed, and ânext_requirement_urlâ, a string url to the next requirement item, and âcompleted_atâ, the date the course was completed (null if incomplete). ânext_requirement_urlâ will be null if all requirements have been completed or the current module does not require sequential progress. âcourse_progressâ will return an error message if the course is not module based or the user is not enrolled as a student in the course.
+âsectionsâ: Section enrollment information to include with each Course. Returns an array of hashes containing the section ID (id), section name (name), start and end dates (start_at, end_at), as well as the enrollment type (enrollment_role, e.g. âStudentEnrollmentâ).
+âstorage_quota_used_mbâ: The amount of storage space used by the files in this course
+âtotal_studentsâ: Optional information to include with each Course. Returns an integer for the total amount of active and invited students.
+âpassback_statusâ: Include the grade passback_status
+âfavoritesâ: Optional information to include with each Course. Indicates if the user has marked the course as a favorite course.
+âteachersâ: Teacher information to include with each Course. Returns an array of hashes containing theUserDisplayinformation for each teacher in the course.
+âobserved_usersâ: Optional information to include with each Course. Will include data for observed users if the current user has an observer enrollment.
+âtabsâ: Optional information to include with each Course. Will include the list of tabs configured for each course.  See theList available tabs APIfor more information.
+âcourse_imageâ: Optional information to include with each Course. Returns course image url if a course image has been set.
+âbanner_imageâ: Optional information to include with each Course. Returns course banner image url if the course is a Canvas for Elementary subject and a banner image has been set.
+âconcludedâ: Optional information to include with each Course. Indicates whether the course has been concluded, taking course and term dates into account.
+Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,grading_periods,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,course_image,banner_image,concluded
+If set, only return courses that are in the given state(s). By default, âavailableâ is returned for students and observers, and anything except âdeletedâ, for all other enrollment types
+Allowed values:unpublished,available,completed,deleted
+When set, only return courses where the user has an enrollment with the given state. This will respect section/course/term date overrides.
+Allowed values:active,invited_or_pending,completed
+If set, only return homeroom courses.
+If set, only include courses associated with this account
+
+
+Get user progressCoursesController#user_progress
+
+
+
+GET /api/v1/courses/:course_id/users/:user_id/progress
+
+Return progress information for the user and course
+You can supplyselfas the user_id to query your own progress in a course. To query another userâs progress, you must be a teacher in the course, an administrator, or a linked observer of the user.
+
+
+Create a new courseCoursesController#create
+
+
+
+POST /api/v1/accounts/:account_id/courses
+
+Create a new course
+Parameter |  | Type | Description
+course[name] |  | string | The name of the course. If omitted, the course will be named âUnnamed Course.â
+course[course_code] |  | string | The course code for the course.
+course[start_at] |  | DateTime | Course start date in ISO8601 format, e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+course[end_at] |  | DateTime | Course end date in ISO8601 format. e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+course[license] |  | string | The name of the licensing. Should be one of the following abbreviations (a descriptive name is included in parenthesis for reference):âprivateâ (Private Copyrighted)âcc_by_nc_ndâ (CC Attribution Non-Commercial No Derivatives)âcc_by_nc_saâ (CC Attribution Non-Commercial Share Alike)âcc_by_ncâ (CC Attribution Non-Commercial)âcc_by_ndâ (CC Attribution No Derivatives)âcc_by_saâ (CC Attribution Share Alike)âcc_byâ (CC Attribution)âpublic_domainâ (Public Domain).
+course[is_public] |  | boolean | Set to true if course is public to both authenticated and unauthenticated users.
+course[is_public_to_auth_users] |  | boolean | Set to true if course is public only to authenticated users.
+course[public_syllabus] |  | boolean | Set to true to make the course syllabus public.
+course[public_syllabus_to_auth] |  | boolean | Set to true to make the course syllabus public for authenticated users.
+course[public_description] |  | string | A publicly visible description of the course.
+course[allow_student_wiki_edits] |  | boolean | If true, students will be able to modify the course wiki.
+course[allow_wiki_comments] |  | boolean | If true, course members will be able to comment on wiki pages.
+course[allow_student_forum_attachments] |  | boolean | If true, students can attach files to forum posts.
+course[open_enrollment] |  | boolean | Set to true if the course is open enrollment.
+course[self_enrollment] |  | boolean | Set to true if the course is self enrollment.
+course[restrict_enrollments_to_course_dates] |  | boolean | Set to true to restrict user enrollments to the start and end dates of the course. This value must be set to true in order to specify a course start date and/or end date.
+course[term_id] |  | string | The unique ID of the term to create to course in.
+course[sis_course_id] |  | string | The unique SIS identifier.
+course[integration_id] |  | string | The unique Integration identifier.
+course[hide_final_grades] |  | boolean | If this option is set to true, the totals in student grades summary will be hidden.
+course[apply_assignment_group_weights] |  | boolean | Set to true to weight final grade based on assignment groups percentages.
+course[time_zone] |  | string | The time zone for the course. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+offer |  | boolean | If this option is set to true, the course will be available to students immediately.
+enroll_me |  | boolean | Set to true to enroll the current user as the teacher.
+course[default_view] |  | string | The type of page that users will see when they first visit the courseâfeedâ Recent Activity Dashboardâmodulesâ Course Modules/Sections Pageâassignmentsâ Course Assignments Listâsyllabusâ Course Syllabus Pageother types may be added in the futureAllowed values:feed,wiki,modules,syllabus,assignments
+course[syllabus_body] |  | string | The syllabus body for the course
+course[grading_standard_id] |  | integer | The grading standard id to set for the course.  If no value is provided for this argument the current grading_standard will be un-set from this course.
+course[grade_passback_setting] |  | string | Optional. The grade_passback_setting for the course. Only ânightly_syncâ, âdisabledâ, and â are allowed
+course[course_format] |  | string | Optional. Specifies the format of the course. (Should be âon_campusâ, âonlineâ, or âblendedâ)
+enable_sis_reactivation |  | boolean | When true, will first try to re-activate a deleted course with matching sis_course_id if possible.
+
+The name of the course. If omitted, the course will be named âUnnamed Course.â
+The course code for the course.
+Course start date in ISO8601 format, e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+Course end date in ISO8601 format. e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+The name of the licensing. Should be one of the following abbreviations (a descriptive name is included in parenthesis for reference):
+âprivateâ (Private Copyrighted)
+âcc_by_nc_ndâ (CC Attribution Non-Commercial No Derivatives)
+âcc_by_nc_saâ (CC Attribution Non-Commercial Share Alike)
+âcc_by_ncâ (CC Attribution Non-Commercial)
+âcc_by_ndâ (CC Attribution No Derivatives)
+âcc_by_saâ (CC Attribution Share Alike)
+âcc_byâ (CC Attribution)
+âpublic_domainâ (Public Domain).
+Set to true if course is public to both authenticated and unauthenticated users.
+Set to true if course is public only to authenticated users.
+Set to true to make the course syllabus public.
+Set to true to make the course syllabus public for authenticated users.
+A publicly visible description of the course.
+If true, students will be able to modify the course wiki.
+If true, course members will be able to comment on wiki pages.
+If true, students can attach files to forum posts.
+Set to true if the course is open enrollment.
+Set to true if the course is self enrollment.
+Set to true to restrict user enrollments to the start and end dates of the course. This value must be set to true in order to specify a course start date and/or end date.
+The unique ID of the term to create to course in.
+The unique SIS identifier.
+The unique Integration identifier.
+If this option is set to true, the totals in student grades summary will be hidden.
+Set to true to weight final grade based on assignment groups percentages.
+The time zone for the course. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+If this option is set to true, the course will be available to students immediately.
+Set to true to enroll the current user as the teacher.
+The type of page that users will see when they first visit the course
+âfeedâ Recent Activity Dashboard
+âmodulesâ Course Modules/Sections Page
+âassignmentsâ Course Assignments List
+âsyllabusâ Course Syllabus Page
+other types may be added in the future
+Allowed values:feed,wiki,modules,syllabus,assignments
+The syllabus body for the course
+The grading standard id to set for the course.  If no value is provided for this argument the current grading_standard will be un-set from this course.
+Optional. The grade_passback_setting for the course. Only ânightly_syncâ, âdisabledâ, and â are allowed
+Optional. Specifies the format of the course. (Should be âon_campusâ, âonlineâ, or âblendedâ)
+When true, will first try to re-activate a deleted course with matching sis_course_id if possible.
+
+
+Upload a fileCoursesController#create_file
+
+
+
+POST /api/v1/courses/:course_id/files
+
+Upload a file to the course.
+This API endpoint is the first step in uploading a file to a course. See theFile Upload Documentationfor details on the file upload workflow.
+Only those with the âManage Filesâ permission on a course can upload files to the course. By default, this is Teachers, TAs and Designers.
+
+
+List studentsCoursesController#students
+
+
+
+GET /api/v1/courses/:course_id/students
+
+Returns the paginated list of students enrolled in this course.
+DEPRECATED: Please use thecourse usersendpoint and pass âstudentâ as the enrollment_type.
+
+
+List users in courseCoursesController#users
+
+
+
+GET /api/v1/courses/:course_id/users
+
+
+
+GET /api/v1/courses/:course_id/search_users
+
+Returns the paginated list of users in this course. And optionally the userâs enrollments in the course.
+Parameter |  | Type | Description
+search_term |  | string | The partial name or full ID of the users to match and return in the results list.
+sort |  | string | When set, sort the results of the search based on the given field.Allowed values:username,last_login,email,sis_id
+enrollment_type[] |  | string | When set, only return users where the user is enrolled as this type. âstudent_viewâ implies include[]=test_student. This argument is ignored if enrollment_role is given.Allowed values:teacher,student,student_view,ta,observer,designer
+enrollment_role |  | string | Deprecated When set, only return users enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a base role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+enrollment_role_id |  | integer | When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a built_in role id with type âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+include[] |  | string | âenrollmentsâ:Optionally include with each Course the userâs current and invited enrollments. If the user is enrolled as a student, and the account has permission to manage or view all grades, each enrollment will include a âgradesâ key with âcurrent_scoreâ, âfinal_scoreâ, âcurrent_gradeâ and âfinal_gradeâ values.âlockedâ: Optionally include whether an enrollment is locked.âavatar_urlâ: Optionally include avatar_url.âbioâ: Optionally include each userâs bio.âtest_studentâ: Optionally include the courseâs Test Student,if present. Default is to not include Test Student.âcustom_linksâ: Optionally include plugin-supplied custom links for each student,such as analytics informationâcurrent_grading_period_scoresâ: if enrollments is included aswell as this directive, the scores returned in the enrollment will be for the current grading period if there is one. A âgrading_period_idâ value will also be included with the scores. if grading_period_id is nil there is no current grading period and the score is a total score.âuuidâ: Optionally include the users uuidAllowed values:enrollments,locked,avatar_url,test_student,bio,custom_links,current_grading_period_scores,uuid
+user_id |  | string | If this parameter is given and it corresponds to a user in the course, thepageparameter will be ignored and the page containing the specified user will be returned instead.
+user_ids[] |  | integer | If included, the course users set will only include users with IDs specified by the param. Note: this will not work in conjunction with the âuser_idâ argument but multiple user_ids can be included.
+enrollment_state[] |  | string | When set, only return users where the enrollment workflow state is of one of the given types. âactiveâ and âinvitedâ enrollments are returned by default.Allowed values:active,invited,rejected,completed,inactive
+
+The partial name or full ID of the users to match and return in the results list.
+When set, sort the results of the search based on the given field.
+Allowed values:username,last_login,email,sis_id
+When set, only return users where the user is enrolled as this type. âstudent_viewâ implies include[]=test_student. This argument is ignored if enrollment_role is given.
+Allowed values:teacher,student,student_view,ta,observer,designer
+Deprecated When set, only return users enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a base role type of âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+When set, only return courses where the user is enrolled with the specified course-level role.  This can be a role created with theAdd Role APIor a built_in role id with type âStudentEnrollmentâ, âTeacherEnrollmentâ, âTaEnrollmentâ, âObserverEnrollmentâ, or âDesignerEnrollmentâ.
+âenrollmentsâ:
+Optionally include with each Course the userâs current and invited enrollments. If the user is enrolled as a student, and the account has permission to manage or view all grades, each enrollment will include a âgradesâ key with âcurrent_scoreâ, âfinal_scoreâ, âcurrent_gradeâ and âfinal_gradeâ values.
+âlockedâ: Optionally include whether an enrollment is locked.
+âavatar_urlâ: Optionally include avatar_url.
+âbioâ: Optionally include each userâs bio.
+âtest_studentâ: Optionally include the courseâs Test Student,
+if present. Default is to not include Test Student.
+âcustom_linksâ: Optionally include plugin-supplied custom links for each student,
+such as analytics information
+âcurrent_grading_period_scoresâ: if enrollments is included as
+well as this directive, the scores returned in the enrollment will be for the current grading period if there is one. A âgrading_period_idâ value will also be included with the scores. if grading_period_id is nil there is no current grading period and the score is a total score.
+âuuidâ: Optionally include the users uuid
+Allowed values:enrollments,locked,avatar_url,test_student,bio,custom_links,current_grading_period_scores,uuid
+If this parameter is given and it corresponds to a user in the course, thepageparameter will be ignored and the page containing the specified user will be returned instead.
+If included, the course users set will only include users with IDs specified by the param. Note: this will not work in conjunction with the âuser_idâ argument but multiple user_ids can be included.
+When set, only return users where the enrollment workflow state is of one of the given types. âactiveâ and âinvitedâ enrollments are returned by default.
+Allowed values:active,invited,rejected,completed,inactive
+
+
+List recently logged in studentsCoursesController#recent_students
+
+
+
+GET /api/v1/courses/:course_id/recent_students
+
+Returns the paginated list of users in this course, ordered by how recently they have logged in. The records include the âlast_loginâ field which contains a timestamp of the last time that user logged into canvas.  The querying user must have the âView usage reportsâ permission.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/<course_id>/recent_users
+
+
+Get single userCoursesController#user
+
+
+
+GET /api/v1/courses/:course_id/users/:id
+
+Return information on a single user.
+Accepts the same include[] parameters as the :users: action, and returns a single user with the same fields as that action.
+
+
+Search for content share usersCoursesController#content_share_users
+
+
+
+GET /api/v1/courses/:course_id/content_share_users
+
+Returns a paginated list of users you can share content with.  Requires the content share feature and the user must have the manage content permission for the course.
+Parameter |  | Type | Description
+search_term | Required | string | Term used to find users.  Will search available share users with the search term in their name.
+
+Term used to find users.  Will search available share users with the search term in their name.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/<course_id>/content_share_users \
+     -d 'search_term=smith'
+
+
+Preview processed htmlCoursesController#preview_html
+
+
+
+POST /api/v1/courses/:course_id/preview_html
+
+Preview html content processed for this course
+Parameter |  | Type | Description
+html |  | string | The html content to process
+
+The html content to process
+curl https://<canvas>/api/v1/courses/<course_id>/preview_html \
+     -F 'html=<p><badhtml></badhtml>processed html</p>' \
+     -H 'Authorization: Bearer <token>'
+{
+  "html": "<p>processed html</p>"
+}
+
+
+Course activity streamCoursesController#activity_stream
+
+
+
+GET /api/v1/courses/:course_id/activity_stream
+
+Returns the current userâs course-specific activity stream, paginated.
+For full documentation, see the API documentation for the user activity stream, in the user api.
+
+
+Course activity stream summaryCoursesController#activity_stream_summary
+
+
+
+GET /api/v1/courses/:course_id/activity_stream/summary
+
+Returns a summary of the current userâs course-specific activity stream.
+For full documentation, see the API documentation for the user activity stream summary, in the user api.
+
+
+Course TODO itemsCoursesController#todo_items
+
+
+
+GET /api/v1/courses/:course_id/todo
+
+Returns the current userâs course-specific todo items.
+For full documentation, see the API documentation for the user todo items, in the user api.
+
+
+Delete/Conclude a courseCoursesController#destroy
+
+
+
+DELETE /api/v1/courses/:id
+
+Delete or conclude an existing course
+Parameter |  | Type | Description
+event | Required | string | The action to take on the course.Allowed values:delete,conclude
+
+The action to take on the course.
+Allowed values:delete,conclude
+{ "delete": "true" }
+
+
+Get course settingsCoursesController#api_settings
+
+
+
+GET /api/v1/courses/:course_id/settings
+
+Returns some of a courseâs settings.
+curl https://<canvas>/api/v1/courses/<course_id>/settings \
+  -X GET \
+  -H 'Authorization: Bearer <token>'
+{
+  "allow_student_discussion_topics": true,
+  "allow_student_forum_attachments": false,
+  "allow_student_discussion_editing": true,
+  "grading_standard_enabled": true,
+  "grading_standard_id": 137,
+  "allow_student_organized_groups": true,
+  "hide_final_grades": false,
+  "hide_distribution_graphs": false,
+  "hide_sections_on_course_users_page": false,
+  "lock_all_announcements": true,
+  "usage_rights_required": false,
+  "homeroom_course": false,
+  "default_due_time": "23:59:59",
+  "conditional_release": false
+}
+
+
+Update course settingsCoursesController#update_settings
+
+
+
+PUT /api/v1/courses/:course_id/settings
+
+Can update the following course settings:
+Parameter |  | Type | Description
+allow_student_discussion_topics |  | boolean | Let students create discussion topics
+allow_student_forum_attachments |  | boolean | Let students attach files to discussions
+allow_student_discussion_editing |  | boolean | Let students edit or delete their own discussion replies
+allow_student_organized_groups |  | boolean | Let students organize their own groups
+allow_student_discussion_reporting |  | boolean | Let students report offensive discussion content
+allow_student_anonymous_discussion_topics |  | boolean | Let students create anonymous discussion topics
+filter_speed_grader_by_student_group |  | boolean | Filter SpeedGrader to only the selected student group
+hide_final_grades |  | boolean | Hide totals in student grades summary
+hide_distribution_graphs |  | boolean | Hide grade distribution graphs from students
+hide_sections_on_course_users_page |  | boolean | Disallow students from viewing students in sections they do not belong to
+lock_all_announcements |  | boolean | Disable comments on announcements
+usage_rights_required |  | boolean | Copyright and license information must be provided for files before they are published.
+restrict_student_past_view |  | boolean | Restrict students from viewing courses after end date
+restrict_student_future_view |  | boolean | Restrict students from viewing courses before start date
+show_announcements_on_home_page |  | boolean | Show the most recent announcements on the Course home page (if a Wiki, defaults to five announcements, configurable via home_page_announcement_limit). Canvas for Elementary subjects ignore this setting.
+home_page_announcement_limit |  | integer | Limit the number of announcements on the home page if enabled via show_announcements_on_home_page
+syllabus_course_summary |  | boolean | Show the course summary (list of assignments and calendar events) on the syllabus page. Default is true.
+default_due_time |  | string | Set the default due time for assignments. This is the time that will be pre-selected in the Canvas user interface when setting a due date for an assignment. It does not change when any existing assignment is due. It should be given in 24-hour HH:MM:SS format. The default is â23:59:59â. Use âinheritâ to inherit the account setting.
+conditional_release |  | boolean | Enable or disable individual learning paths for students based on assessment
+
+Let students create discussion topics
+Let students attach files to discussions
+Let students edit or delete their own discussion replies
+Let students organize their own groups
+Let students report offensive discussion content
+Let students create anonymous discussion topics
+Filter SpeedGrader to only the selected student group
+Hide totals in student grades summary
+Hide grade distribution graphs from students
+Disallow students from viewing students in sections they do not belong to
+Disable comments on announcements
+Copyright and license information must be provided for files before they are published.
+Restrict students from viewing courses after end date
+Restrict students from viewing courses before start date
+Show the most recent announcements on the Course home page (if a Wiki, defaults to five announcements, configurable via home_page_announcement_limit). Canvas for Elementary subjects ignore this setting.
+Limit the number of announcements on the home page if enabled via show_announcements_on_home_page
+Show the course summary (list of assignments and calendar events) on the syllabus page. Default is true.
+Set the default due time for assignments. This is the time that will be pre-selected in the Canvas user interface when setting a due date for an assignment. It does not change when any existing assignment is due. It should be given in 24-hour HH:MM:SS format. The default is â23:59:59â. Use âinheritâ to inherit the account setting.
+Enable or disable individual learning paths for students based on assessment
+curl https://<canvas>/api/v1/courses/<course_id>/settings \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'allow_student_discussion_topics=false'
+
+
+Return test student for courseCoursesController#student_view_student
+
+
+
+GET /api/v1/courses/:course_id/student_view_student
+
+Returns information for a test student in this course. Creates a test student if one does not already exist for the course. The caller must have permission to access the courseâs student view.
+curl https://<canvas>/api/v1/courses/<course_id>/student_view_student \
+  -X GET \
+  -H 'Authorization: Bearer <token>'
+
+
+Get a single courseCoursesController#show
+
+
+
+GET /api/v1/courses/:id
+
+
+
+GET /api/v1/accounts/:account_id/courses/:id
+
+Return information on a single course.
+Accepts the same include[] parameters as the list action plus:
+Parameter |  | Type | Description
+include[] |  | string | âall_coursesâ: Also search recently deleted courses.âpermissionsâ: Include permissions the current user has for the course.âobserved_usersâ: Include observed users in the enrollmentsâcourse_imageâ: Include course image url if a course image has been setâbanner_imageâ: Include course banner image url if the course is a Canvas for Elementary subject and a banner image has been setâconcludedâ: Optional information to include with Course. Indicates whether the course has been concluded, taking course and term dates into account.âlti_context_idâ: Include course LTI tool id.Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,all_courses,permissions,course_image,banner_image,concluded,lti_context_id
+teacher_limit |  | integer | The maximum number of teacher enrollments to show. If the course contains more teachers than this, instead of giving the teacher enrollments, the count of teachers will be given under ateacher_countkey.
+
+âall_coursesâ: Also search recently deleted courses.
+âpermissionsâ: Include permissions the current user has for the course.
+âobserved_usersâ: Include observed users in the enrollments
+âcourse_imageâ: Include course image url if a course image has been set
+âbanner_imageâ: Include course banner image url if the course is a Canvas for Elementary subject and a banner image has been set
+âconcludedâ: Optional information to include with Course. Indicates whether the course has been concluded, taking course and term dates into account.
+âlti_context_idâ: Include course LTI tool id.
+Allowed values:needs_grading_count,syllabus_body,public_description,total_scores,current_grading_period_scores,term,account,course_progress,sections,storage_quota_used_mb,total_students,passback_status,favorites,teachers,observed_users,all_courses,permissions,course_image,banner_image,concluded,lti_context_id
+The maximum number of teacher enrollments to show. If the course contains more teachers than this, instead of giving the teacher enrollments, the count of teachers will be given under ateacher_countkey.
+
+
+Update a courseCoursesController#update
+
+
+
+PUT /api/v1/courses/:id
+
+Update an existing course.
+Arguments are the same as Courses#create, with a few exceptions (enroll_me).
+If a user has content management rights, but not full course editing rights, the only attribute editable through this endpoint will be âsyllabus_bodyâ
+If an account has set prevent_course_availability_editing_by_teachers, a teacher cannot changecourse,course, orcoursehere.
+Parameter |  | Type | Description
+course[account_id] |  | integer | The unique ID of the account to move the course to.
+course[name] |  | string | The name of the course. If omitted, the course will be named âUnnamed Course.â
+course[course_code] |  | string | The course code for the course.
+course[start_at] |  | DateTime | Course start date in ISO8601 format, e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true, or the course is already published.
+course[end_at] |  | DateTime | Course end date in ISO8601 format. e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+course[license] |  | string | The name of the licensing. Should be one of the following abbreviations (a descriptive name is included in parenthesis for reference):âprivateâ (Private Copyrighted)âcc_by_nc_ndâ (CC Attribution Non-Commercial No Derivatives)âcc_by_nc_saâ (CC Attribution Non-Commercial Share Alike)âcc_by_ncâ (CC Attribution Non-Commercial)âcc_by_ndâ (CC Attribution No Derivatives)âcc_by_saâ (CC Attribution Share Alike)âcc_byâ (CC Attribution)âpublic_domainâ (Public Domain).
+course[is_public] |  | boolean | Set to true if course is public to both authenticated and unauthenticated users.
+course[is_public_to_auth_users] |  | boolean | Set to true if course is public only to authenticated users.
+course[public_syllabus] |  | boolean | Set to true to make the course syllabus public.
+course[public_syllabus_to_auth] |  | boolean | Set to true to make the course syllabus to public for authenticated users.
+course[public_description] |  | string | A publicly visible description of the course.
+course[allow_student_wiki_edits] |  | boolean | If true, students will be able to modify the course wiki.
+course[allow_wiki_comments] |  | boolean | If true, course members will be able to comment on wiki pages.
+course[allow_student_forum_attachments] |  | boolean | If true, students can attach files to forum posts.
+course[open_enrollment] |  | boolean | Set to true if the course is open enrollment.
+course[self_enrollment] |  | boolean | Set to true if the course is self enrollment.
+course[restrict_enrollments_to_course_dates] |  | boolean | Set to true to restrict user enrollments to the start and end dates of the course. Setting this value to false will remove the course end date (if it exists), as well as the course start date (if the course is unpublished).
+course[term_id] |  | integer | The unique ID of the term to create to course in.
+course[sis_course_id] |  | string | The unique SIS identifier.
+course[integration_id] |  | string | The unique Integration identifier.
+course[hide_final_grades] |  | boolean | If this option is set to true, the totals in student grades summary will be hidden.
+course[time_zone] |  | string | The time zone for the course. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+course[apply_assignment_group_weights] |  | boolean | Set to true to weight final grade based on assignment groups percentages.
+course[storage_quota_mb] |  | integer | Set the storage quota for the course, in megabytes. The caller must have the âManage storage quotasâ account permission.
+offer |  | boolean | If this option is set to true, the course will be available to students immediately.
+course[event] |  | string | The action to take on each course.âclaimâ makes a course no longer visible to students. This action is also called âunpublishâ on the web site. A course cannot be unpublished if students have received graded submissions.âofferâ makes a course visible to students. This action is also called âpublishâ on the web site.âconcludeâ prevents future enrollments and makes a course read-only for all participants. The course still appears in prior-enrollment lists.âdeleteâ completely removes the course from the web site (including course menus and prior-enrollment lists). All enrollments are deleted. Course content may be physically deleted at a future date.âundeleteâ attempts to recover a course that has been deleted. This action requires account administrative rights. (Recovery is not guaranteed; please conclude rather than delete a course if there is any possibility the course will be used again.) The recovered course will be unpublished. Deleted enrollments will not be recovered.Allowed values:claim,offer,conclude,delete,undelete
+course[default_view] |  | string | The type of page that users will see when they first visit the courseâfeedâ Recent Activity Dashboardâwikiâ Wiki Front Pageâmodulesâ Course Modules/Sections Pageâassignmentsâ Course Assignments Listâsyllabusâ Course Syllabus Pageother types may be added in the futureAllowed values:feed,wiki,modules,syllabus,assignments
+course[syllabus_body] |  | string | The syllabus body for the course
+course[syllabus_course_summary] |  | boolean | Optional. Indicates whether the Course Summary (consisting of the courseâs assignments and calendar events) is displayed on the syllabus page. Defaults totrue.
+course[grading_standard_id] |  | integer | The grading standard id to set for the course.  If no value is provided for this argument the current grading_standard will be un-set from this course.
+course[grade_passback_setting] |  | string | Optional. The grade_passback_setting for the course. Only ânightly_syncâ and â are allowed
+course[course_format] |  | string | Optional. Specifies the format of the course. (Should be either âon_campusâ or âonlineâ)
+course[image_id] |  | integer | This is a file ID corresponding to an image file in the course that will be used as the course image. This will clear the courseâs image_url setting if set.  If you attempt to provide image_url and image_id in a request it will fail.
+course[image_url] |  | string | This is a URL to an image to be used as the course image. This will clear the courseâs image_id setting if set.  If you attempt to provide image_url and image_id in a request it will fail.
+course[remove_image] |  | boolean | If this option is set to true, the course image url and course image ID are both set to nil
+course[remove_banner_image] |  | boolean | If this option is set to true, the course banner image url and course banner image ID are both set to nil
+course[blueprint] |  | boolean | Sets the course as a blueprint course.
+course[blueprint_restrictions] |  | BlueprintRestriction | Sets a default set to apply to blueprint course objects when restricted, unlessuse_blueprint_restrictions_by_object_typeis enabled. See theBlueprint Restrictiondocumentation
+course[use_blueprint_restrictions_by_object_type] |  | boolean | When enabled, theblueprint_restrictionsparameter will be ignored in favor of theblueprint_restrictions_by_object_typeparameter
+course[blueprint_restrictions_by_object_type] |  | multiple BlueprintRestrictions | Allows setting multipleBlueprint Restrictionto apply to blueprint course objects of the matching type when restricted. The possible object types are âassignmentâ, âattachmentâ, âdiscussion_topicâ, âquizâ and âwiki_pageâ. Example usage:course[blueprint_restrictions_by_object_type][assignment][content]=1
+course[homeroom_course] |  | boolean | Sets the course as a homeroom course. The setting takes effect only when the course is associated with a Canvas for Elementary-enabled account.
+course[sync_enrollments_from_homeroom] |  | string | Syncs enrollments from the homeroom that is set in homeroom_course_id. The setting only takes effect when the course is associated with a Canvas for Elementary-enabled account and sync_enrollments_from_homeroom is enabled.
+course[homeroom_course_id] |  | string | Sets the Homeroom Course id to be used with sync_enrollments_from_homeroom. The setting only takes effect when the course is associated with a Canvas for Elementary-enabled account and sync_enrollments_from_homeroom is enabled.
+course[template] |  | boolean | Enable or disable the course as a template that can be selected by an account
+course[course_color] |  | string | Sets a color in hex code format to be associated with the course. The setting takes effect only when the course is associated with a Canvas for Elementary-enabled account.
+course[friendly_name] |  | string | Set a friendly name for the course. If this is provided and the course is associated with a Canvas for Elementary account, it will be shown instead of the course name. This setting takes priority over course nicknames defined by individual users.
+course[enable_course_paces] |  | boolean | Enable or disable Course Pacing for the course. This setting only has an effect when the Course Pacing feature flag is enabled for the sub-account. Otherwise, Course Pacing are always disabled.Note: Course Pacing is in active development.
+course[conditional_release] |  | boolean | Enable or disable individual learning paths for students based on assessment
+override_sis_stickiness |  | boolean | Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+
+The unique ID of the account to move the course to.
+The name of the course. If omitted, the course will be named âUnnamed Course.â
+The course code for the course.
+Course start date in ISO8601 format, e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true, or the course is already published.
+Course end date in ISO8601 format. e.g. 2011-01-01T01:00Z This value is ignored unless ârestrict_enrollments_to_course_datesâ is set to true.
+The name of the licensing. Should be one of the following abbreviations (a descriptive name is included in parenthesis for reference):
+âprivateâ (Private Copyrighted)
+âcc_by_nc_ndâ (CC Attribution Non-Commercial No Derivatives)
+âcc_by_nc_saâ (CC Attribution Non-Commercial Share Alike)
+âcc_by_ncâ (CC Attribution Non-Commercial)
+âcc_by_ndâ (CC Attribution No Derivatives)
+âcc_by_saâ (CC Attribution Share Alike)
+âcc_byâ (CC Attribution)
+âpublic_domainâ (Public Domain).
+Set to true if course is public to both authenticated and unauthenticated users.
+Set to true if course is public only to authenticated users.
+Set to true to make the course syllabus public.
+Set to true to make the course syllabus to public for authenticated users.
+A publicly visible description of the course.
+If true, students will be able to modify the course wiki.
+If true, course members will be able to comment on wiki pages.
+If true, students can attach files to forum posts.
+Set to true if the course is open enrollment.
+Set to true if the course is self enrollment.
+Set to true to restrict user enrollments to the start and end dates of the course. Setting this value to false will remove the course end date (if it exists), as well as the course start date (if the course is unpublished).
+The unique ID of the term to create to course in.
+The unique SIS identifier.
+The unique Integration identifier.
+If this option is set to true, the totals in student grades summary will be hidden.
+The time zone for the course. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+Set to true to weight final grade based on assignment groups percentages.
+Set the storage quota for the course, in megabytes. The caller must have the âManage storage quotasâ account permission.
+If this option is set to true, the course will be available to students immediately.
+The action to take on each course.
+âclaimâ makes a course no longer visible to students. This action is also called âunpublishâ on the web site. A course cannot be unpublished if students have received graded submissions.
+âofferâ makes a course visible to students. This action is also called âpublishâ on the web site.
+âconcludeâ prevents future enrollments and makes a course read-only for all participants. The course still appears in prior-enrollment lists.
+âdeleteâ completely removes the course from the web site (including course menus and prior-enrollment lists). All enrollments are deleted. Course content may be physically deleted at a future date.
+âundeleteâ attempts to recover a course that has been deleted. This action requires account administrative rights. (Recovery is not guaranteed; please conclude rather than delete a course if there is any possibility the course will be used again.) The recovered course will be unpublished. Deleted enrollments will not be recovered.
+Allowed values:claim,offer,conclude,delete,undelete
+The type of page that users will see when they first visit the course
+âfeedâ Recent Activity Dashboard
+âwikiâ Wiki Front Page
+âmodulesâ Course Modules/Sections Page
+âassignmentsâ Course Assignments List
+âsyllabusâ Course Syllabus Page
+other types may be added in the future
+Allowed values:feed,wiki,modules,syllabus,assignments
+The syllabus body for the course
+Optional. Indicates whether the Course Summary (consisting of the courseâs assignments and calendar events) is displayed on the syllabus page. Defaults totrue.
+The grading standard id to set for the course.  If no value is provided for this argument the current grading_standard will be un-set from this course.
+Optional. The grade_passback_setting for the course. Only ânightly_syncâ and â are allowed
+Optional. Specifies the format of the course. (Should be either âon_campusâ or âonlineâ)
+This is a file ID corresponding to an image file in the course that will be used as the course image. This will clear the courseâs image_url setting if set.  If you attempt to provide image_url and image_id in a request it will fail.
+This is a URL to an image to be used as the course image. This will clear the courseâs image_id setting if set.  If you attempt to provide image_url and image_id in a request it will fail.
+If this option is set to true, the course image url and course image ID are both set to nil
+If this option is set to true, the course banner image url and course banner image ID are both set to nil
+Sets the course as a blueprint course.
+Sets a default set to apply to blueprint course objects when restricted, unlessuse_blueprint_restrictions_by_object_typeis enabled. See theBlueprint Restrictiondocumentation
+When enabled, theblueprint_restrictionsparameter will be ignored in favor of theblueprint_restrictions_by_object_typeparameter
+Allows setting multipleBlueprint Restrictionto apply to blueprint course objects of the matching type when restricted. The possible object types are âassignmentâ, âattachmentâ, âdiscussion_topicâ, âquizâ and âwiki_pageâ. Example usage:
+course[blueprint_restrictions_by_object_type][assignment][content]=1
+Sets the course as a homeroom course. The setting takes effect only when the course is associated with a Canvas for Elementary-enabled account.
+Syncs enrollments from the homeroom that is set in homeroom_course_id. The setting only takes effect when the course is associated with a Canvas for Elementary-enabled account and sync_enrollments_from_homeroom is enabled.
+Sets the Homeroom Course id to be used with sync_enrollments_from_homeroom. The setting only takes effect when the course is associated with a Canvas for Elementary-enabled account and sync_enrollments_from_homeroom is enabled.
+Enable or disable the course as a template that can be selected by an account
+Sets a color in hex code format to be associated with the course. The setting takes effect only when the course is associated with a Canvas for Elementary-enabled account.
+Set a friendly name for the course. If this is provided and the course is associated with a Canvas for Elementary account, it will be shown instead of the course name. This setting takes priority over course nicknames defined by individual users.
+Enable or disable Course Pacing for the course. This setting only has an effect when the Course Pacing feature flag is enabled for the sub-account. Otherwise, Course Pacing are always disabled.
+Note: Course Pacing is in active development.
+Enable or disable individual learning paths for students based on assessment
+Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+curl https://<canvas>/api/v1/courses/<course_id> \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'course[name]=New course name' \
+  -d 'course[start_at]=2012-05-05T00:00:00Z'
+{
+  "name": "New course name",
+  "course_code": "COURSE-001",
+  "start_at": "2012-05-05T00:00:00Z",
+  "end_at": "2012-08-05T23:59:59Z",
+  "sis_course_id": "12345"
+}
+
+
+Update coursesCoursesController#batch_update
+
+
+
+PUT /api/v1/accounts/:account_id/courses
+
+Update multiple courses in an account.  Operates asynchronously; use theprogress endpointto query the status of an operation.
+Parameter |  | Type | Description
+course_ids[] | Required | string | List of ids of courses to update. At most 500 courses may be updated in one call.
+event | Required | string | The action to take on each course.  Must be one of âofferâ, âconcludeâ, âdeleteâ, or âundeleteâ.âofferâ makes a course visible to students. This action is also called âpublishâ on the web site.âconcludeâ prevents future enrollments and makes a course read-only for all participants. The course still appears in prior-enrollment lists.âdeleteâ completely removes the course from the web site (including course menus and prior-enrollment lists). All enrollments are deleted. Course content may be physically deleted at a future date.âundeleteâ attempts to recover a course that has been deleted. (Recovery is not guaranteed; please conclude rather than delete a course if there is any possibility the course will be used again.) The recovered course will be unpublished. Deleted enrollments will not be recovered.Allowed values:offer,conclude,delete,undelete
+
+List of ids of courses to update. At most 500 courses may be updated in one call.
+The action to take on each course.  Must be one of âofferâ, âconcludeâ, âdeleteâ, or âundeleteâ.
+âofferâ makes a course visible to students. This action is also called âpublishâ on the web site.
+âconcludeâ prevents future enrollments and makes a course read-only for all participants. The course still appears in prior-enrollment lists.
+âdeleteâ completely removes the course from the web site (including course menus and prior-enrollment lists). All enrollments are deleted. Course content may be physically deleted at a future date.
+âundeleteâ attempts to recover a course that has been deleted. (Recovery is not guaranteed; please conclude rather than delete a course if there is any possibility the course will be used again.) The recovered course will be unpublished. Deleted enrollments will not be recovered.
+Allowed values:offer,conclude,delete,undelete
+curl https://<canvas>/api/v1/accounts/<account_id>/courses \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'event=offer' \
+  -d 'course_ids[]=1' \
+  -d 'course_ids[]=2'
+
+
+Reset a courseCoursesController#reset_content
+
+
+
+POST /api/v1/courses/:course_id/reset_content
+
+Deletes the current course, and creates a new equivalent course with no content, but all sections and users moved over.
+
+
+Get effective due datesCoursesController#effective_due_dates
+
+
+
+GET /api/v1/courses/:course_id/effective_due_dates
+
+For each assignment in the course, returns each assigned studentâs ID and their corresponding due date along with some grading period data. Returns a collection with keys representing assignment IDs and values as a collection containing keys representing student IDs and values representing the studentâs effective due_at, the grading_period_id of which the due_at falls in, and whether or not the grading period is closed (in_closed_grading_period)
+The list of assignment IDs for which effective student due dates are requested. If not provided, all assignments in the course will be used.
+Parameter |  | Type | Description
+assignment_ids[] |  | string | no description
+
+no description
+curl https://<canvas>/api/v1/courses/<course_id>/effective_due_dates
+  -X GET \
+  -H 'Authorization: Bearer <token>'
+{
+  "1": {
+     "14": { "due_at": "2015-09-05", "grading_period_id": null, "in_closed_grading_period": false },
+     "15": { due_at: null, "grading_period_id": 3, "in_closed_grading_period": true }
+  },
+  "2": {
+     "14": { "due_at": "2015-08-05", "grading_period_id": 3, "in_closed_grading_period": true }
+  }
+}
+
+
+PermissionsCoursesController#permissions
+
+
+
+GET /api/v1/courses/:course_id/permissions
+
+Returns permission information for the calling user in the given course. See also theAccountandGroupcounterparts.
+Parameter |  | Type | Description
+permissions[] |  | string | List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+
+List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+curl https://<canvas>/api/v1/courses/<course_id>/permissions \
+  -H 'Authorization: Bearer <token>' \
+  -d 'permissions[]=manage_grades'
+  -d 'permissions[]=send_messages'
+{'manage_grades': 'false', 'send_messages': 'true'}
+
+
+Get bulk user progressCoursesController#bulk_user_progress
+
+
+
+GET /api/v1/courses/:course_id/bulk_user_progress
+
+Returns progress information for all users enrolled in the given course.
+You must be a user who has permission to view all grades in the course (such as a teacher or administrator).
+curl https://<canvas>/api/v1/courses/<course_id>/bulk_user_progress \
+  -H 'Authorization: Bearer <token>'
+[
+  {
+    "id": 1,
+    "display_name": "Test Student 1",
+    "avatar_image_url": "https://<canvas>/images/messages/avatar-50.png",
+    "html_url": "https://<canvas>/courses/1/users/1",
+    "pronouns": null,
+    "progress": {
+      "requirement_count": 2,
+      "requirement_completed_count": 1,
+      "next_requirement_url": "https://<canvas>/courses/<course_id>/modules/items/<item_id>",
+      "completed_at": null
+    }
+  },
+  {
+    "id": 2,
+    "display_name": "Test Student 2",
+    "avatar_image_url": "https://<canvas>/images/messages/avatar-50.png",
+    "html_url": "https://<canvas>/courses/1/users/2",
+    "pronouns": null,
+    "progress": {
+      "requirement_count": 2,
+      "requirement_completed_count": 2,
+      "next_requirement_url": null,
+      "completed_at": "2021-08-10T16:26:08Z"
+    }
+  }
+]
+
+
+Remove quiz migration alertCoursesController#dismiss_migration_limitation_msg
+
+
+
+POST /api/v1/courses/:id/dismiss_migration_limitation_message
+
+Remove alert about the limitations of quiz migrations that is displayed to a user in a course
+you must be logged in to use this endpoint
+{ "success": "true" }
+
+
+Get course copy statusContentImportsController#copy_course_status
+
+
+
+GET /api/v1/courses/:course_id/course_copy/:id
+
+DEPRECATED: Please use theContent Migrations API
+Retrieve the status of a course copy
+The unique identifier for the course copy.
+The time that the copy was initiated.
+The progress of the copy as an integer. It is null before the copying starts, and 100 when finished.
+The current status of the course copy. Possible values: âcreatedâ, âstartedâ, âcompletedâ, âfailedâ
+The url for the course copy status API endpoint.
+{'progress':100, 'workflow_state':'completed', 'id':257, 'created_at':'2011-11-17T16:50:06Z', 'status_url':'/api/v1/courses/9457/course_copy/257'}
+
+
+Copy course contentContentImportsController#copy_course_content
+
+
+
+POST /api/v1/courses/:course_id/course_copy
+
+DEPRECATED: Please use theContent Migrations API
+Copies content from one course into another. The default is to copy all course content. You can control specific types to copy by using either the âexceptâ option or the âonlyâ option.
+The response is the same as the course copy status endpoint
+Parameter |  | Type | Description
+source_course |  | string | ID or SIS-ID of the course to copy the content from
+except[] |  | string | A list of the course content types to exclude, all areas not listed will be copied.Allowed values:course_settings,assignments,external_tools,files,topics,calendar_events,quizzes,wiki_pages,modules,outcomes
+only[] |  | string | A list of the course content types to copy, all areas not listed will not be copied.Allowed values:course_settings,assignments,external_tools,files,topics,calendar_events,quizzes,wiki_pages,modules,outcomes
+
+ID or SIS-ID of the course to copy the content from
+A list of the course content types to exclude, all areas not listed will be copied.
+Allowed values:course_settings,assignments,external_tools,files,topics,calendar_events,quizzes,wiki_pages,modules,outcomes
+A list of the course content types to copy, all areas not listed will not be copied.
+Allowed values:course_settings,assignments,external_tools,files,topics,calendar_events,quizzes,wiki_pages,modules,outcomes

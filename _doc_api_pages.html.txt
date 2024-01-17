@@ -1,0 +1,334 @@
+Pages API
+
+
+Pages are rich content associated with Courses and Groups in Canvas.
+The Pages API allows you to create, retrieve, update, and delete pages.
+Note on page identifiers
+Most Pages API endpoints accept identification of the Page as either a URL
+or an ID. In ambiguous cases, the URL takes precedence.
+For example, if you have a page whose ID is 7 and another whose ID is 8 and whose URL is "7",
+the endpoint/api/v1/courses/:course_id/pages/7will refer to the latter (ID 8).
+To explicitly request by ID, you can use the form/api/v1/courses/:course_id/pages/page_id:7.
+
+
+A Page object looks like:
+
+{
+  // the ID of the page
+  "page_id": 1,
+  // the unique locator for the page
+  "url": "my-page-title",
+  // the title of the page
+  "title": "My Page Title",
+  // the creation date for the page
+  "created_at": "2012-08-06T16:46:33-06:00",
+  // the date the page was last updated
+  "updated_at": "2012-08-08T14:25:20-06:00",
+  // (DEPRECATED) whether this page is hidden from students (note: this is always
+  // reflected as the inverse of the published value)
+  "hide_from_students": false,
+  // roles allowed to edit the page; comma-separated list comprising a combination
+  // of 'teachers', 'students', 'members', and/or 'public' if not supplied, course
+  // defaults are used
+  "editing_roles": "teachers,students",
+  // the User who last edited the page (this may not be present if the page was
+  // imported from another system)
+  "last_edited_by": null,
+  // the page content, in HTML (present when requesting a single page; optionally
+  // included when listing pages)
+  "body": "<p>Page Content</p>",
+  // whether the page is published (true) or draft state (false).
+  "published": true,
+  // scheduled publication date for this page
+  "publish_at": "2022-09-01T00:00:00",
+  // whether this page is the front page for the wiki
+  "front_page": false,
+  // Whether or not this is locked for the user.
+  "locked_for_user": false,
+  // (Optional) Information for the user about the lock. Present when
+  // locked_for_user is true.
+  "lock_info": null,
+  // (Optional) An explanation of why this is locked for the user. Present when
+  // locked_for_user is true.
+  "lock_explanation": "This page is locked until September 1 at 12:00am"
+}
+
+
+A PageRevision object looks like:
+
+{
+  // an identifier for this revision of the page
+  "revision_id": 7,
+  // the time when this revision was saved
+  "updated_at": "2012-08-07T11:23:58-06:00",
+  // whether this is the latest revision or not
+  "latest": true,
+  // the User who saved this revision, if applicable (this may not be present if
+  // the page was imported from another system)
+  "edited_by": null,
+  // the following fields are not included in the index action and may be omitted
+  // from the show action via summary=1 the historic url of the page
+  "url": "old-page-title",
+  // the historic page title
+  "title": "Old Page Title",
+  // the historic page contents
+  "body": "<p>Old Page Content</p>"
+}
+
+
+Show front pageWikiPagesApiController#show_front_page
+
+
+
+GET /api/v1/courses/:course_id/front_page
+
+
+
+GET /api/v1/groups/:group_id/front_page
+
+Retrieve the content of the front page
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/123/front_page
+
+
+Duplicate pageWikiPagesApiController#duplicate
+
+
+
+POST /api/v1/courses/:course_id/pages/:url_or_id/duplicate
+
+Duplicate a wiki page
+curl -X POST -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/14/duplicate
+
+
+Update/create front pageWikiPagesApiController#update_front_page
+
+
+
+PUT /api/v1/courses/:course_id/front_page
+
+
+
+PUT /api/v1/groups/:group_id/front_page
+
+Update the title or contents of the front page
+Parameter |  | Type | Description
+wiki_page[title] |  | string | The title for the new page. NOTE: changing a pageâs title will change its url. The updated url will be returned in the result.
+wiki_page[body] |  | string | The content for the new page.
+wiki_page[editing_roles] |  | string | Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).âteachersâAllows editing by teachers in the course.âstudentsâAllows editing by students in the course.âmembersâFor group wikis, allows editing by members of the group.âpublicâAllows editing by any user.Allowed values:teachers,students,members,public
+wiki_page[notify_of_update] |  | boolean | Whether participants should be notified when this page changes.
+wiki_page[published] |  | boolean | Whether the page is published (true) or draft state (false).
+
+The title for the new page. NOTE: changing a pageâs title will change its url. The updated url will be returned in the result.
+The content for the new page.
+Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).
+Allows editing by teachers in the course.
+Allows editing by students in the course.
+For group wikis, allows editing by members of the group.
+Allows editing by any user.
+Allowed values:teachers,students,members,public
+Whether participants should be notified when this page changes.
+Whether the page is published (true) or draft state (false).
+curl -X PUT -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/front_page \
+-d wiki_page[body]=Updated+body+text
+
+
+List pagesWikiPagesApiController#index
+
+
+
+GET /api/v1/courses/:course_id/pages
+
+
+
+GET /api/v1/groups/:group_id/pages
+
+A paginated list of the wiki pages associated with a course or group
+Parameter |  | Type | Description
+sort |  | string | Sort results by this field.Allowed values:title,created_at,updated_at
+order |  | string | The sorting order. Defaults to âascâ.Allowed values:asc,desc
+search_term |  | string | The partial title of the pages to match and return.
+published |  | boolean | If true, include only published paqes. If false, exclude published pages. If not present, do not filter on published status.
+include[] |  | string | âenrollmentsâ: Optionally include the page body with each Page.Allowed values:body
+
+Sort results by this field.
+Allowed values:title,created_at,updated_at
+The sorting order. Defaults to âascâ.
+Allowed values:asc,desc
+The partial title of the pages to match and return.
+If true, include only published paqes. If false, exclude published pages. If not present, do not filter on published status.
+âenrollmentsâ: Optionally include the page body with each Page.
+Allowed values:body
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/123/pages?sort=title&order=asc
+
+
+Create pageWikiPagesApiController#create
+
+
+
+POST /api/v1/courses/:course_id/pages
+
+
+
+POST /api/v1/groups/:group_id/pages
+
+Create a new wiki page
+Parameter |  | Type | Description
+wiki_page[title] | Required | string | The title for the new page.
+wiki_page[body] |  | string | The content for the new page.
+wiki_page[editing_roles] |  | string | Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).âteachersâAllows editing by teachers in the course.âstudentsâAllows editing by students in the course.âmembersâFor group wikis, allows editing by members of the group.âpublicâAllows editing by any user.Allowed values:teachers,students,members,public
+wiki_page[notify_of_update] |  | boolean | Whether participants should be notified when this page changes.
+wiki_page[published] |  | boolean | Whether the page is published (true) or draft state (false).
+wiki_page[front_page] |  | boolean | Set an unhidden page as the front page (if true)
+wiki_page[publish_at] |  | DateTime | Schedule a future date/time to publish the page. This will have no effect unless the âScheduled Page Publicationâ feature is enabled in the account. If a future date is supplied, the page will be unpublished andwiki_pagewill be ignored.
+
+The title for the new page.
+The content for the new page.
+Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).
+Allows editing by teachers in the course.
+Allows editing by students in the course.
+For group wikis, allows editing by members of the group.
+Allows editing by any user.
+Allowed values:teachers,students,members,public
+Whether participants should be notified when this page changes.
+Whether the page is published (true) or draft state (false).
+Set an unhidden page as the front page (if true)
+Schedule a future date/time to publish the page. This will have no effect unless the âScheduled Page Publicationâ feature is enabled in the account. If a future date is supplied, the page will be unpublished andwiki_pagewill be ignored.
+curl -X POST -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages \
+-d wiki_page[title]=New+page
+-d wiki_page[body]=New+body+text
+
+
+Show pageWikiPagesApiController#show
+
+
+
+GET /api/v1/courses/:course_id/pages/:url_or_id
+
+
+
+GET /api/v1/groups/:group_id/pages/:url_or_id
+
+Retrieve the content of a wiki page
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/123/pages/the-page-identifier
+
+
+Update/create pageWikiPagesApiController#update
+
+
+
+PUT /api/v1/courses/:course_id/pages/:url_or_id
+
+
+
+PUT /api/v1/groups/:group_id/pages/:url_or_id
+
+Update the title or contents of a wiki page
+NOTE: You cannot specify the ID when creating a page. If you pass a numeric value as the page identifier and that does not represent a page ID that already exists, it will be interpreted as a URL.
+Parameter |  | Type | Description
+wiki_page[title] |  | string | The title for the new page. NOTE: changing a pageâs title will change its url. The updated url will be returned in the result.
+wiki_page[body] |  | string | The content for the new page.
+wiki_page[editing_roles] |  | string | Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).âteachersâAllows editing by teachers in the course.âstudentsâAllows editing by students in the course.âmembersâFor group wikis, allows editing by members of the group.âpublicâAllows editing by any user.Allowed values:teachers,students,members,public
+wiki_page[notify_of_update] |  | boolean | Whether participants should be notified when this page changes.
+wiki_page[published] |  | boolean | Whether the page is published (true) or draft state (false).
+wiki_page[publish_at] |  | DateTime | Schedule a future date/time to publish the page. This will have no effect unless the âScheduled Page Publicationâ feature is enabled in the account. If a future date is set and the page is already published, it will be unpublished.
+wiki_page[front_page] |  | boolean | Set an unhidden page as the front page (if true)
+
+The title for the new page. NOTE: changing a pageâs title will change its url. The updated url will be returned in the result.
+The content for the new page.
+Which user roles are allowed to edit this page. Any combination of these roles is allowed (separated by commas).
+Allows editing by teachers in the course.
+Allows editing by students in the course.
+For group wikis, allows editing by members of the group.
+Allows editing by any user.
+Allowed values:teachers,students,members,public
+Whether participants should be notified when this page changes.
+Whether the page is published (true) or draft state (false).
+Schedule a future date/time to publish the page. This will have no effect unless the âScheduled Page Publicationâ feature is enabled in the account. If a future date is set and the page is already published, it will be unpublished.
+Set an unhidden page as the front page (if true)
+curl -X PUT -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier \
+-d 'wiki_page[body]=Updated+body+text'
+
+
+Delete pageWikiPagesApiController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/pages/:url_or_id
+
+
+
+DELETE /api/v1/groups/:group_id/pages/:url_or_id
+
+Delete a wiki page
+curl -X DELETE -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier
+
+
+List revisionsWikiPagesApiController#revisions
+
+
+
+GET /api/v1/courses/:course_id/pages/:url_or_id/revisions
+
+
+
+GET /api/v1/groups/:group_id/pages/:url_or_id/revisions
+
+A paginated list of the revisions of a page. Callers must have update rights on the page in order to see page history.
+curl -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier/revisions
+
+
+Show revisionWikiPagesApiController#show_revision
+
+
+
+GET /api/v1/courses/:course_id/pages/:url_or_id/revisions/latest
+
+
+
+GET /api/v1/groups/:group_id/pages/:url_or_id/revisions/latest
+
+
+
+GET /api/v1/courses/:course_id/pages/:url_or_id/revisions/:revision_id
+
+
+
+GET /api/v1/groups/:group_id/pages/:url_or_id/revisions/:revision_id
+
+Retrieve the metadata and optionally content of a revision of the page. Note that retrieving historic versions of pages requires edit rights.
+Parameter |  | Type | Description
+summary |  | boolean | If set, exclude page content from results
+
+If set, exclude page content from results
+curl -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier/revisions/latest
+curl -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier/revisions/4
+
+
+Revert to revisionWikiPagesApiController#revert
+
+
+
+POST /api/v1/courses/:course_id/pages/:url_or_id/revisions/:revision_id
+
+
+
+POST /api/v1/groups/:group_id/pages/:url_or_id/revisions/:revision_id
+
+Revert a page to a prior revision.
+Parameter |  | Type | Description
+revision_id | Required | integer | The revision to revert to (use theList Revisions APIto see available revisions)
+
+The revision to revert to (use theList Revisions APIto see available revisions)
+curl -X POST -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/courses/123/pages/the-page-identifier/revisions/6

@@ -1,0 +1,103 @@
+Quiz Question Groups API
+
+
+API for accessing information on quiz question groups
+
+
+A QuizGroup object looks like:
+
+{
+  // The ID of the question group.
+  "id": 1,
+  // The ID of the Quiz the question group belongs to.
+  "quiz_id": 2,
+  // The name of the question group.
+  "name": "Fraction questions",
+  // The number of questions to pick from the group to display to the student.
+  "pick_count": 3,
+  // The amount of points allotted to each question in the group.
+  "question_points": 10,
+  // The ID of the Assessment question bank to pull questions from.
+  "assessment_question_bank_id": 2,
+  // The order in which the question group will be retrieved and displayed.
+  "position": 1
+}
+
+
+Get a single quiz groupQuizzes::QuizGroupsController#show
+
+
+
+GET /api/v1/courses/:course_id/quizzes/:quiz_id/groups/:id
+
+Returns details of the quiz group with the given id.
+
+
+Create a question groupQuizzes::QuizGroupsController#create
+
+
+
+POST /api/v1/courses/:course_id/quizzes/:quiz_id/groups
+
+Create a new question group for this quiz
+201 Createdresponse code is returned if the creation was successful.
+Parameter |  | Type | Description
+quiz_groups[][name] |  | string | The name of the question group.
+quiz_groups[][pick_count] |  | integer | The number of questions to randomly select for this group.
+quiz_groups[][question_points] |  | integer | The number of points to assign to each question in the group.
+quiz_groups[][assessment_question_bank_id] |  | integer | The id of the assessment question bank to pull questions from.
+
+The name of the question group.
+The number of questions to randomly select for this group.
+The number of points to assign to each question in the group.
+The id of the assessment question bank to pull questions from.
+{
+  "quiz_groups": [QuizGroup]
+}
+
+
+Update a question groupQuizzes::QuizGroupsController#update
+
+
+
+PUT /api/v1/courses/:course_id/quizzes/:quiz_id/groups/:id
+
+Update a question group
+Parameter |  | Type | Description
+quiz_groups[][name] |  | string | The name of the question group.
+quiz_groups[][pick_count] |  | integer | The number of questions to randomly select for this group.
+quiz_groups[][question_points] |  | integer | The number of points to assign to each question in the group.
+
+The name of the question group.
+The number of questions to randomly select for this group.
+The number of points to assign to each question in the group.
+{
+  "quiz_groups": [QuizGroup]
+}
+
+
+Delete a question groupQuizzes::QuizGroupsController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/quizzes/:quiz_id/groups/:id
+
+Delete a question group
+<b>204 No Content<b> response code is returned if the deletion was successful.
+
+
+Reorder question groupsQuizzes::QuizGroupsController#reorder
+
+
+
+POST /api/v1/courses/:course_id/quizzes/:quiz_id/groups/:id/reorder
+
+Change the order of the quiz questions within the group
+<b>204 No Content<b> response code is returned if the reorder was successful.
+Parameter |  | Type | Description
+order[][id] | Required | integer | The associated itemâs unique identifier
+order[][type] |  | string | The type of item is always âquestionâ for a groupAllowed values:question
+
+The associated itemâs unique identifier
+The type of item is always âquestionâ for a group
+Allowed values:question

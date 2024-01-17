@@ -1,0 +1,131 @@
+Favorites API
+
+
+
+
+A Favorite object looks like:
+
+{
+  // The ID of the object the Favorite refers to
+  "context_id": 1170,
+  // The type of the object the Favorite refers to (currently, only 'Course' is
+  // supported)
+  "context_type": "Course"
+}
+
+
+List favorite coursesFavoritesController#list_favorite_courses
+
+
+
+GET /api/v1/users/self/favorites/courses
+
+Retrieve the paginated list of favorite courses for the current user. If the user has not chosen any favorites, then a selection of currently enrolled courses will be returned.
+See theList courses APIfor details on accepted include[] parameters.
+Parameter |  | Type | Description
+exclude_blueprint_courses |  | boolean | When set, only return courses that are not configured as blueprint courses.
+
+When set, only return courses that are not configured as blueprint courses.
+curl https://<canvas>/api/v1/users/self/favorites/courses \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+
+
+List favorite groupsFavoritesController#list_favorite_groups
+
+
+
+GET /api/v1/users/self/favorites/groups
+
+Retrieve the paginated list of favorite groups for the current user. If the user has not chosen any favorites, then a selection of groups that the user is a member of will be returned.
+curl https://<canvas>/api/v1/users/self/favorites/groups \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+
+
+Add course to favoritesFavoritesController#add_favorite_course
+
+
+
+POST /api/v1/users/self/favorites/courses/:id
+
+Add a course to the current userâs favorites.  If the course is already in the userâs favorites, nothing happens. Canvas for Elementary subject and homeroom courses can be added to favorites, but this has no effect in the UI.
+Parameter |  | Type | Description
+id | Required | string | The ID or SIS ID of the course to add.  The current user must be registered in the course.
+
+The ID or SIS ID of the course to add.  The current user must be registered in the course.
+curl https://<canvas>/api/v1/users/self/favorites/courses/1170 \
+  -X POST \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>' \
+  -H 'Content-Length: 0'
+
+
+Add group to favoritesFavoritesController#add_favorite_groups
+
+
+
+POST /api/v1/users/self/favorites/groups/:id
+
+Add a group to the current userâs favorites.  If the group is already in the userâs favorites, nothing happens.
+Parameter |  | Type | Description
+id | Required | string | The ID or SIS ID of the group to add.  The current user must be a member of the group.
+
+The ID or SIS ID of the group to add.  The current user must be a member of the group.
+curl https://<canvas>/api/v1/users/self/favorites/group/1170 \
+  -X POST \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>' \
+  -H 'Content-Length: 0'
+
+
+Remove course from favoritesFavoritesController#remove_favorite_course
+
+
+
+DELETE /api/v1/users/self/favorites/courses/:id
+
+Remove a course from the current userâs favorites.
+Parameter |  | Type | Description
+id | Required | string | the ID or SIS ID of the course to remove
+
+the ID or SIS ID of the course to remove
+curl https://<canvas>/api/v1/users/self/favorites/courses/1170 \
+  -X DELETE \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+
+
+Remove group from favoritesFavoritesController#remove_favorite_groups
+
+
+
+DELETE /api/v1/users/self/favorites/groups/:id
+
+Remove a group from the current userâs favorites.
+Parameter |  | Type | Description
+id | Required | string | the ID or SIS ID of the group to remove
+
+the ID or SIS ID of the group to remove
+curl https://<canvas>/api/v1/users/self/favorites/groups/1170 \
+  -X DELETE \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+
+
+Reset course favoritesFavoritesController#reset_course_favorites
+
+
+
+DELETE /api/v1/users/self/favorites/courses
+
+Reset the current userâs course favorites to the default automatically generated list of enrolled courses
+curl https://<canvas>/api/v1/users/self/favorites/courses \
+  -X DELETE \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'
+
+
+Reset group favoritesFavoritesController#reset_groups_favorites
+
+
+
+DELETE /api/v1/users/self/favorites/groups
+
+Reset the current userâs group favorites to the default automatically generated list of enrolled group
+curl https://<canvas>/api/v1/users/self/favorites/group \
+  -X DELETE \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>'

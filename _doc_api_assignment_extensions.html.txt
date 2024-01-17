@@ -1,0 +1,47 @@
+Assignment Extensions API
+
+
+API for setting extensions on student assignment submissions. These cannot be
+set for discussion assignments or quizzes. For quizzes, useQuiz Extensionsinstead.
+
+
+An AssignmentExtension object looks like:
+
+{
+  // The ID of the Assignment the extension belongs to.
+  "assignment_id": 2,
+  // The ID of the Student that needs the assignment extension.
+  "user_id": 3,
+  // Number of times the student is allowed to re-submit the assignment
+  "extra_attempts": 2
+}
+
+
+Set extensions for student assignment submissionsAssignmentExtensionsController#create
+
+
+
+POST /api/v1/courses/:course_id/assignments/:assignment_id/extensions
+
+Responses
+200 OKif the request was successful
+403 Forbiddenif you are not allowed to extend assignments for this course
+400 Bad Requestif any of the extensions are invalid
+Parameter |  | Type | Description
+assignment_extensions[][user_id] | Required | integer | The ID of the user we want to add assignment extensions for.
+assignment_extensions[][extra_attempts] | Required | integer | Number of times the student is allowed to re-take the assignment over the limit.
+
+The ID of the user we want to add assignment extensions for.
+Number of times the student is allowed to re-take the assignment over the limit.
+{
+  "assignment_extensions": [{
+    "user_id": 3,
+    "extra_attempts": 2
+  },{
+    "user_id": 2,
+    "extra_attempts": 2
+  }]
+}
+{
+  "assignment_extensions": [AssignmentExtension]
+}

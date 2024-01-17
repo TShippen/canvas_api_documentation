@@ -1,0 +1,136 @@
+Content Security Policy Settings API
+
+
+
+BETA: This API resource is not finalized, and there could be breaking changes before its final release.
+
+
+API for enabling/disabling the use of Content Security Policy headers and
+configuring allowed domains
+
+
+Get current settings for account or courseCspSettingsController#get_csp_settings
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+GET /api/v1/courses/:course_id/csp_settings
+
+
+
+GET /api/v1/accounts/:account_id/csp_settings
+
+Update multiple modules in an account.
+Whether CSP is enabled.
+Whether the current CSP settings are inherited from a parent account.
+Whether current CSP settings can be overridden by sub-accounts and courses.
+If enabled, lists the currently allowed domains (includes domains automatically allowed through external tools).
+(Account-only) Lists the automatically allowed domains with their respective external tools
+(Account-only) Lists the current list of domains explicitly allowed by this account. (Note: this list will not take effect unless CSP is explicitly enabled on this account)
+
+
+Enable, disable, or clear explicit CSP settingCspSettingsController#set_csp_setting
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+PUT /api/v1/courses/:course_id/csp_settings
+
+
+
+PUT /api/v1/accounts/:account_id/csp_settings
+
+Either explicitly sets CSP to be on or off for courses and sub-accounts, or clear the explicit settings to default to those set by a parent account
+Note: If âinheritedâ and âsettings_lockedâ are both true for this account or course, then the CSP setting cannot be modified.
+Parameter |  | Type | Description
+status | Required | string | If set to âenabledâ for an account, CSP will be enabled for all its courses and sub-accounts (that have not explicitly enabled or disabled it), using the allowed domains set on this account. If set to âdisabledâ, CSP will be disabled for this account or course and for all sub-accounts that have not explicitly re-enabled it. If set to âinheritedâ, this account or course will reset to the default state where CSP settings are inherited from the first parent account to have them explicitly set.Allowed values:enabled,disabled,inherited
+
+If set to âenabledâ for an account, CSP will be enabled for all its courses and sub-accounts (that have not explicitly enabled or disabled it), using the allowed domains set on this account. If set to âdisabledâ, CSP will be disabled for this account or course and for all sub-accounts that have not explicitly re-enabled it. If set to âinheritedâ, this account or course will reset to the default state where CSP settings are inherited from the first parent account to have them explicitly set.
+Allowed values:enabled,disabled,inherited
+
+
+Lock or unlock current CSP settings for sub-accounts and coursesCspSettingsController#set_csp_lock
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+PUT /api/v1/accounts/:account_id/csp_settings/lock
+
+Can only be set if CSP is explicitly enabled or disabled on this account (i.e. âinheritedâ is false).
+Parameter |  | Type | Description
+settings_locked | Required | boolean | Whether sub-accounts and courses will be prevented from overriding settings inherited from this account.
+
+Whether sub-accounts and courses will be prevented from overriding settings inherited from this account.
+
+
+Add an allowed domain to accountCspSettingsController#add_domain
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+POST /api/v1/accounts/:account_id/csp_settings/domains
+
+Adds an allowed domain for the current account. Note: this will not take effect unless CSP is explicitly enabled on this account.
+Parameter |  | Type | Description
+domain | Required | string | no description
+
+no description
+
+
+Add multiple allowed domains to an accountCspSettingsController#add_multiple_domains
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+POST /api/v1/accounts/:account_id/csp_settings/domains/batch_create
+
+Adds multiple allowed domains for the current account. Note: this will not take effect unless CSP is explicitly enabled on this account.
+Parameter |  | Type | Description
+domains | Required | Array | no description
+
+no description
+
+
+Retrieve reported CSP Violations for accountCspSettingsController#csp_log
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+GET /api/v1/accounts/:account_id/csp_log
+
+Must be called on a root account.
+
+
+Remove a domain from accountCspSettingsController#remove_domain
+
+
+
+BETA: This API endpoint is not finalized, and there could be breaking changes before its final release.
+
+
+
+DELETE /api/v1/accounts/:account_id/csp_settings/domains
+
+Removes an allowed domain from the current account.
+Parameter |  | Type | Description
+domain | Required | string | no description
+
+no description

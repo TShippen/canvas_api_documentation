@@ -1,0 +1,51 @@
+CommMessages API
+
+
+API for accessing the messages (emails, sms, twitter, etc) that have
+been sent to a user.
+
+
+A CommMessage object looks like:
+
+{
+  // The ID of the CommMessage.
+  "id": 42,
+  // The date and time this message was created
+  "created_at": "2013-03-19T21:00:00Z",
+  // The date and time this message was sent
+  "sent_at": "2013-03-20T22:42:00Z",
+  // The workflow state of the message. One of 'created', 'staged', 'sending',
+  // 'sent', 'bounced', 'dashboard', 'cancelled', or 'closed'
+  "workflow_state": "sent",
+  // The address that was put in the 'from' field of the message
+  "from": "notifications@example.com",
+  // The display name for the from address
+  "from_name": "Instructure Canvas",
+  // The address the message was sent to:
+  "to": "someone@example.com",
+  // The reply_to header of the message
+  "reply_to": "notifications+specialdata@example.com",
+  // The message subject
+  "subject": "example subject line",
+  // The plain text body of the message
+  "body": "This is the body of the message",
+  // The HTML body of the message.
+  "html_body": "<html><body>This is the body of the message</body></html>"
+}
+
+
+List of CommMessages for a userCommMessagesApiController#index
+
+
+
+GET /api/v1/comm_messages
+
+Retrieve a paginated list of messages sent to a user.
+Parameter |  | Type | Description
+user_id | Required | string | The user id for whom you want to retrieve CommMessages
+start_time |  | DateTime | The beginning of the time range you want to retrieve message from. Up to a year prior to the current date is available.
+end_time |  | DateTime | The end of the time range you want to retrieve messages for. Up to a year prior to the current date is available.
+
+The user id for whom you want to retrieve CommMessages
+The beginning of the time range you want to retrieve message from. Up to a year prior to the current date is available.
+The end of the time range you want to retrieve messages for. Up to a year prior to the current date is available.

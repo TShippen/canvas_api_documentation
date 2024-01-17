@@ -1,0 +1,72 @@
+Public JWK API
+
+
+
+
+A DeveloperKey object looks like:
+
+{
+  // The ID should match the Developer Key ID in canvas
+  "id": 1000000000040,
+  // true the tool is a lti key, null is not a lti key
+  "is_lti_key": true,
+  // Controls if the tool is visable
+  "visible": true,
+  // The name of the account associated with the tool
+  "account_name": "The Academy",
+  // The public key in jwk format
+  "public_jwk": "{
+  	"kty":"RSA",
+  	"e":"AQAB",
+  	"n":"ufmgt156hs168mgdhy168jrsydt168ju816rtahesuvdbmnrtd87t7h8ser",
+  	"alg":"RS256",
+  	"use":"sig",
+  	"kid":"Se68gr16s6tj_87sdr98g489dsfjy-547a6eht1",
+  }",
+  // The code of the vendor managing the tool
+  "vendor_code": "fi5689s9avewr68",
+  // The date and time the tool was last used
+  "last_used_at": "2019-06-07T20:34:33Z",
+  // The number of active access tokens associated with the tool
+  "access_token_count": 0,
+  // redirect uris description
+  "redirect_uris": "https://redirect.to.here.com",
+  // redirect uri description
+  "redirect_uri": "https://redirect.to.here.com",
+  // Api key for api access for the tool
+  "api_key": "sd45fg648sr546tgh15S15df5se56r4xdf45asef456",
+  // Notes for use specifications for the tool
+  "notes": "Used for sorting graded assignments",
+  // Display name of the tool
+  "name": "Tool 1",
+  // ID of the user associated with the tool
+  "user_id": "tu816dnrs6zdsg148918dmu",
+  // The time the jwk was created
+  "created_at": "2019-06-07T20:34:33Z",
+  // The user name of the tool creator
+  "user_name": "johnsmith",
+  // Email associated with the tool owner
+  "email": "johnsmith@instructure.com",
+  // True if the tool has required permissions, null if there are no needed
+  // permissions
+  "require_scopes": true,
+  // Icon to be displayed with the name of the tool
+  "icon_url": "null",
+  // Specified permissions for the tool
+  "scopes": "https://canvas.instructure.com/lti/public_jwk/scope/update",
+  // The current state of the tool
+  "workflow_state": "active"
+}
+
+
+Update Public JWKLti::PublicJwkController#update
+
+
+
+PUT /api/lti/developer_key/update_public_jwk
+
+Rotate the public key in jwk format when using lti services
+Parameter |  | Type | Description
+public_jwk | Required | json | The new public jwk that will be set to the tools current public jwk.
+
+The new public jwk that will be set to the tools current public jwk.

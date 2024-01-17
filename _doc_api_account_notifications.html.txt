@@ -1,0 +1,137 @@
+Account Notifications API
+
+
+API for account notifications.
+
+
+An AccountNotification object looks like:
+
+{
+  // The subject of the notifications
+  "subject": "Attention Students",
+  // The message to be sent in the notification.
+  "message": "This is a test of the notification system.",
+  // When to send out the notification.
+  "start_at": "2013-08-28T23:59:00-06:00",
+  // When to expire the notification.
+  "end_at": "2013-08-29T23:59:00-06:00",
+  // The icon to display with the message.  Defaults to warning.
+  "icon": "information",
+  // (Deprecated) The roles to send the notification to.  If roles is not passed
+  // it defaults to all roles
+  "roles": ["StudentEnrollment"],
+  // The roles to send the notification to.  If roles is not passed it defaults to
+  // all roles
+  "role_ids": [1]
+}
+
+
+Index of active global notification for the userAccountNotificationsController#user_index
+
+
+
+GET /api/v1/accounts/:account_id/account_notifications
+
+Returns a list of all global notifications in the account for the current user Any notifications that have been closed by the user will not be returned, unless a include_past parameter is passed in as true.
+Parameter |  | Type | Description
+include_past |  | boolean | Include past and dismissed global announcements.
+
+Include past and dismissed global announcements.
+curl -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/accounts/2/users/self/account_notifications
+
+
+Show a global notificationAccountNotificationsController#show
+
+
+
+GET /api/v1/accounts/:account_id/account_notifications/:id
+
+Returns a global notification for the current user A notification that has been closed by the user will not be returned
+curl -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/accounts/2/users/self/account_notifications/4
+
+
+Close notification for userAccountNotificationsController#user_close_notification
+
+
+
+DELETE /api/v1/accounts/:account_id/account_notifications/:id
+
+If the current user no long wants to see this notification it can be excused with this call
+curl -X DELETE -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/accounts/2/users/self/account_notifications/4
+
+
+Create a global notificationAccountNotificationsController#create
+
+
+
+POST /api/v1/accounts/:account_id/account_notifications
+
+Create and return a new global notification for an account.
+Parameter |  | Type | Description
+account_notification[subject] | Required | string | The subject of the notification.
+account_notification[message] | Required | string | The message body of the notification.
+account_notification[start_at] | Required | DateTime | The start date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+account_notification[end_at] | Required | DateTime | The end date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+account_notification[icon] |  | string | The icon to display with the notification. Note: Defaults to warning.Allowed values:warning,information,question,error,calendar
+account_notification_roles[] |  | string | The role(s) to send global notification to.  Note:  ommitting this field will send to everyone Example:account_notification_roles: ["StudentEnrollment", "TeacherEnrollment"]
+
+The subject of the notification.
+The message body of the notification.
+The start date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+The end date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+The icon to display with the notification. Note: Defaults to warning.
+Allowed values:warning,information,question,error,calendar
+The role(s) to send global notification to.  Note:  ommitting this field will send to everyone Example:
+account_notification_roles: ["StudentEnrollment", "TeacherEnrollment"]
+curl -X POST -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/accounts/2/account_notifications \
+-d 'account_notification[subject]=New notification' \
+-d 'account_notification[start_at]=2014-01-01T00:00:00Z' \
+-d 'account_notification[end_at]=2014-02-01T00:00:00Z' \
+-d 'account_notification[message]=This is a global notification'
+{
+  "subject": "New notification",
+  "start_at": "2014-01-01T00:00:00Z",
+  "end_at": "2014-02-01T00:00:00Z",
+  "message": "This is a global notification"
+}
+
+
+Update a global notificationAccountNotificationsController#update
+
+
+
+PUT /api/v1/accounts/:account_id/account_notifications/:id
+
+Update global notification for an account.
+Parameter |  | Type | Description
+account_notification[subject] |  | string | The subject of the notification.
+account_notification[message] |  | string | The message body of the notification.
+account_notification[start_at] |  | DateTime | The start date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+account_notification[end_at] |  | DateTime | The end date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+account_notification[icon] |  | string | The icon to display with the notification.Allowed values:warning,information,question,error,calendar
+account_notification_roles[] |  | string | The role(s) to send global notification to.  Note:  ommitting this field will send to everyone Example:account_notification_roles: ["StudentEnrollment", "TeacherEnrollment"]
+
+The subject of the notification.
+The message body of the notification.
+The start date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+The end date and time of the notification in ISO8601 format. e.g. 2014-01-01T01:00Z
+The icon to display with the notification.
+Allowed values:warning,information,question,error,calendar
+The role(s) to send global notification to.  Note:  ommitting this field will send to everyone Example:
+account_notification_roles: ["StudentEnrollment", "TeacherEnrollment"]
+curl -X PUT -H 'Authorization: Bearer <token>' \
+https://<canvas>/api/v1/accounts/2/account_notifications/1 \
+-d 'account_notification[subject]=New notification' \
+-d 'account_notification[start_at]=2014-01-01T00:00:00Z' \
+-d 'account_notification[end_at]=2014-02-01T00:00:00Z' \
+-d 'account_notification[message]=This is a global notification'
+{
+  "subject": "New notification",
+  "start_at": "2014-01-01T00:00:00Z",
+  "end_at": "2014-02-01T00:00:00Z",
+  "message": "This is a global notification"
+}

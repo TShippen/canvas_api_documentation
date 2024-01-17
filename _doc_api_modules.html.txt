@@ -1,0 +1,541 @@
+Modules API
+
+
+Modules are collections of learning materials useful for organizing courses
+and optionally providing a linear flow through them. Module items can be
+accessed linearly or sequentially depending on module configuration. Items
+can be unlocked by various criteria such as reading a page or achieving a
+minimum score on a quiz. Modules themselves can be unlocked by the completion
+of other Modules.
+If any active AssignmentOverrides exist on a ContextModule, then only students who have an
+applicable override can access the module and are assigned its items. AssignmentOverrides can
+be created for a (group of) student(s) or a section.This module overrides feature is still
+under development and is not yet enabled.
+
+
+A Module object looks like:
+
+{
+  // the unique identifier for the module
+  "id": 123,
+  // the state of the module: 'active', 'deleted'
+  "workflow_state": "active",
+  // the position of this module in the course (1-based)
+  "position": 2,
+  // the name of this module
+  "name": "Imaginary Numbers and You",
+  // (Optional) the date this module will unlock
+  "unlock_at": "2012-12-31T06:00:00-06:00",
+  // Whether module items must be unlocked in order
+  "require_sequential_progress": true,
+  // IDs of Modules that must be completed before this one is unlocked
+  "prerequisite_module_ids": [121, 122],
+  // The number of items in the module
+  "items_count": 10,
+  // The API URL to retrive this module's items
+  "items_url": "https://canvas.example.com/api/v1/modules/123/items",
+  // The contents of this module, as an array of Module Items. (Present only if
+  // requested via include[]=items AND the module is not deemed too large by
+  // Canvas.)
+  "items": null,
+  // The state of this Module for the calling user one of 'locked', 'unlocked',
+  // 'started', 'completed' (Optional; present only if the caller is a student or
+  // if the optional parameter 'student_id' is included)
+  "state": "started",
+  // the date the calling user completed the module (Optional; present only if the
+  // caller is a student or if the optional parameter 'student_id' is included)
+  "completed_at": null,
+  // if the student's final grade for the course should be published to the SIS
+  // upon completion of this module
+  "publish_final_grade": null,
+  // (Optional) Whether this module is published. This field is present only if
+  // the caller has permission to view unpublished modules.
+  "published": true
+}
+
+
+A CompletionRequirement object looks like:
+
+{
+  // one of 'must_view', 'must_submit', 'must_contribute', 'min_score',
+  // 'must_mark_done'
+  "type": "min_score",
+  // minimum score required to complete (only present when type == 'min_score')
+  "min_score": 10,
+  // whether the calling user has met this requirement (Optional; present only if
+  // the caller is a student or if the optional parameter 'student_id' is
+  // included)
+  "completed": true
+}
+
+
+A ContentDetails object looks like:
+
+{
+  "points_possible": 20,
+  "due_at": "2012-12-31T06:00:00-06:00",
+  "unlock_at": "2012-12-31T06:00:00-06:00",
+  "lock_at": "2012-12-31T06:00:00-06:00",
+  "locked_for_user": true,
+  "lock_explanation": "This quiz is part of an unpublished module and is not available yet.",
+  "lock_info": {"asset_string":"assignment_4","unlock_at":"2012-12-31T06:00:00-06:00","lock_at":"2012-12-31T06:00:00-06:00","context_module":{}}
+}
+
+
+A ModuleItem object looks like:
+
+{
+  // the unique identifier for the module item
+  "id": 768,
+  // the id of the Module this item appears in
+  "module_id": 123,
+  // the position of this item in the module (1-based)
+  "position": 1,
+  // the title of this item
+  "title": "Square Roots: Irrational numbers or boxy vegetables?",
+  // 0-based indent level; module items may be indented to show a hierarchy
+  "indent": 0,
+  // the type of object referred to one of 'File', 'Page', 'Discussion',
+  // 'Assignment', 'Quiz', 'SubHeader', 'ExternalUrl', 'ExternalTool'
+  "type": "Assignment",
+  // the id of the object referred to applies to 'File', 'Discussion',
+  // 'Assignment', 'Quiz', 'ExternalTool' types
+  "content_id": 1337,
+  // link to the item in Canvas
+  "html_url": "https://canvas.example.edu/courses/222/modules/items/768",
+  // (Optional) link to the Canvas API object, if applicable
+  "url": "https://canvas.example.edu/api/v1/courses/222/assignments/987",
+  // (only for 'Page' type) unique locator for the linked wiki page
+  "page_url": "my-page-title",
+  // (only for 'ExternalUrl' and 'ExternalTool' types) external url that the item
+  // points to
+  "external_url": "https://www.example.com/externalurl",
+  // (only for 'ExternalTool' type) whether the external tool opens in a new tab
+  "new_tab": false,
+  // Completion requirement for this module item
+  "completion_requirement": {"type":"min_score","min_score":10,"completed":true},
+  // (Present only if requested through include[]=content_details) If applicable,
+  // returns additional details specific to the associated object
+  "content_details": {"points_possible":20,"due_at":"2012-12-31T06:00:00-06:00","unlock_at":"2012-12-31T06:00:00-06:00","lock_at":"2012-12-31T06:00:00-06:00"},
+  // (Optional) Whether this module item is published. This field is present only
+  // if the caller has permission to view unpublished items.
+  "published": true
+}
+
+
+A ModuleItemSequenceNode object looks like:
+
+{
+  // The previous ModuleItem in the sequence
+  "prev": null,
+  // The ModuleItem being queried
+  "current": {"id":768,"module_id":123,"title":"A lonely page","type":"Page"},
+  // The next ModuleItem in the sequence
+  "next": {"id":769,"module_id":127,"title":"Project 1","type":"Assignment"},
+  // The conditional release rule for the module item, if applicable
+  "mastery_path": {"locked":true,"assignment_sets":[],"selected_set_id":null,"awaiting_choice":false,"still_processing":false,"modules_url":"\/courses\/11\/modules","choose_url":"\/courses\/11\/modules\/items\/9\/choose","modules_tab_disabled":false}
+}
+
+
+A ModuleItemSequence object looks like:
+
+{
+  // an array containing one ModuleItemSequenceNode for each appearence of the
+  // asset in the module sequence (up to 10 total)
+  "items": [{"prev":null,"current":{"id":768,"module_id":123,"title":"A lonely page","type":"Page"},"next":{"id":769,"module_id":127,"title":"Project 1","type":"Assignment"},"mastery_path":{"locked":true,"assignment_sets":[],"selected_set_id":null,"awaiting_choice":false,"still_processing":false,"modules_url":"\/courses\/11\/modules","choose_url":"\/courses\/11\/modules\/items\/9\/choose","modules_tab_disabled":false}}],
+  // an array containing each Module referenced above
+  "modules": [{"id":123,"name":"Overview"}, {"id":127,"name":"Imaginary Numbers"}]
+}
+
+
+A ModuleAssignmentOverride object looks like:
+
+{
+  // the ID of the assignment override
+  "id": 4355,
+  // the ID of the module the override applies to
+  "context_module_id": 567,
+  // the title of the override
+  "title": "Section 6",
+  // an array of the override's target students (present only if the override
+  // targets an adhoc set of students)
+  "students": null,
+  // the override's target section (present only if the override targets a
+  // section)
+  "course_section": null
+}
+
+
+An OverrideTarget object looks like:
+
+{
+  // the ID of the user or section that the override is targeting
+  "id": 7,
+  // the name of the user or section that the override is targeting
+  "name": "Section 6"
+}
+
+
+List modulesContextModulesApiController#index
+
+
+
+GET /api/v1/courses/:course_id/modules
+
+A paginated list of the modules in a course
+Parameter |  | Type | Description
+include[] |  | string | âitemsâ: Return module items inline if possible. This parameter suggests that Canvas return module items directly in the Module object JSON, to avoid having to make separate API requests for each module when enumerating modules and items. Canvas is free to omit âitemsâ for any particular module if it deems them too numerous to return inline. Callers must be prepared to use theList Module Items APIif items are not returned.âcontent_detailsâ: Requires âitemsâ. Returns additional details with module items specific to their associated content items. Includes standard lock information for each item.Allowed values:items,content_details
+search_term |  | string | The partial name of the modules (and module items, if âitemsâ is specified with include[]) to match and return.
+student_id |  | string | Returns module completion information for the student with this id.
+
+âitemsâ: Return module items inline if possible. This parameter suggests that Canvas return module items directly in the Module object JSON, to avoid having to make separate API requests for each module when enumerating modules and items. Canvas is free to omit âitemsâ for any particular module if it deems them too numerous to return inline. Callers must be prepared to use theList Module Items APIif items are not returned.
+âcontent_detailsâ: Requires âitemsâ. Returns additional details with module items specific to their associated content items. Includes standard lock information for each item.
+Allowed values:items,content_details
+The partial name of the modules (and module items, if âitemsâ is specified with include[]) to match and return.
+Returns module completion information for the student with this id.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/222/modules
+
+
+Show moduleContextModulesApiController#show
+
+
+
+GET /api/v1/courses/:course_id/modules/:id
+
+Get information about a single module
+Parameter |  | Type | Description
+include[] |  | string | âitemsâ: Return module items inline if possible. This parameter suggests that Canvas return module items directly in the Module object JSON, to avoid having to make separate API requests for each module when enumerating modules and items. Canvas is free to omit âitemsâ for any particular module if it deems them too numerous to return inline. Callers must be prepared to use theList Module Items APIif items are not returned.âcontent_detailsâ: Requires âitemsâ. Returns additional details with module items specific to their associated content items. Includes standard lock information for each item.Allowed values:items,content_details
+student_id |  | string | Returns module completion information for the student with this id.
+
+âitemsâ: Return module items inline if possible. This parameter suggests that Canvas return module items directly in the Module object JSON, to avoid having to make separate API requests for each module when enumerating modules and items. Canvas is free to omit âitemsâ for any particular module if it deems them too numerous to return inline. Callers must be prepared to use theList Module Items APIif items are not returned.
+âcontent_detailsâ: Requires âitemsâ. Returns additional details with module items specific to their associated content items. Includes standard lock information for each item.
+Allowed values:items,content_details
+Returns module completion information for the student with this id.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/222/modules/123
+
+
+Create a moduleContextModulesApiController#create
+
+
+
+POST /api/v1/courses/:course_id/modules
+
+Create and return a new module
+Parameter |  | Type | Description
+module[name] | Required | string | The name of the module
+module[unlock_at] |  | DateTime | The date the module will unlock
+module[position] |  | integer | The position of this module in the course (1-based)
+module[require_sequential_progress] |  | boolean | Whether module items must be unlocked in order
+module[prerequisite_module_ids][] |  | string | IDs of Modules that must be completed before this one is unlocked. Prerequisite modules must precede this module (i.e. have a lower position value), otherwise they will be ignored
+module[publish_final_grade] |  | boolean | Whether to publish the studentâs final grade for the course upon completion of this module.
+
+The name of the module
+The date the module will unlock
+The position of this module in the course (1-based)
+Whether module items must be unlocked in order
+IDs of Modules that must be completed before this one is unlocked. Prerequisite modules must precede this module (i.e. have a lower position value), otherwise they will be ignored
+Whether to publish the studentâs final grade for the course upon completion of this module.
+curl https://<canvas>/api/v1/courses/<course_id>/modules \
+  -X POST \
+  -H 'Authorization: Bearer <token>' \
+  -d 'module[name]=module' \
+  -d 'module[position]=2' \
+  -d 'module[prerequisite_module_ids][]=121' \
+  -d 'module[prerequisite_module_ids][]=122'
+
+
+Update a moduleContextModulesApiController#update
+
+
+
+PUT /api/v1/courses/:course_id/modules/:id
+
+Update and return an existing module
+Parameter |  | Type | Description
+module[name] |  | string | The name of the module
+module[unlock_at] |  | DateTime | The date the module will unlock
+module[position] |  | integer | The position of the module in the course (1-based)
+module[require_sequential_progress] |  | boolean | Whether module items must be unlocked in order
+module[prerequisite_module_ids][] |  | string | IDs of Modules that must be completed before this one is unlocked Prerequisite modules must precede this module (i.e. have a lower position value), otherwise they will be ignored
+module[publish_final_grade] |  | boolean | Whether to publish the studentâs final grade for the course upon completion of this module.
+module[published] |  | boolean | Whether the module is published and visible to students
+
+The name of the module
+The date the module will unlock
+The position of the module in the course (1-based)
+Whether module items must be unlocked in order
+IDs of Modules that must be completed before this one is unlocked Prerequisite modules must precede this module (i.e. have a lower position value), otherwise they will be ignored
+Whether to publish the studentâs final grade for the course upon completion of this module.
+Whether the module is published and visible to students
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id> \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'module[name]=module' \
+  -d 'module[position]=2' \
+  -d 'module[prerequisite_module_ids][]=121' \
+  -d 'module[prerequisite_module_ids][]=122'
+
+
+Delete moduleContextModulesApiController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/modules/:id
+
+Delete a module
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id> \
+  -X Delete \
+  -H 'Authorization: Bearer <token>'
+
+
+Re-lock module progressionsContextModulesApiController#relock
+
+
+
+PUT /api/v1/courses/:course_id/modules/:id/relock
+
+Resets module progressions to their default locked state and recalculates them based on the current requirements.
+Adding progression requirements to an active course will not lock students out of modules they have already unlocked unless this action is called.
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/relock \
+  -X PUT \
+  -H 'Authorization: Bearer <token>'
+
+
+List module itemsContextModuleItemsApiController#index
+
+
+
+GET /api/v1/courses/:course_id/modules/:module_id/items
+
+A paginated list of the items in a module
+Parameter |  | Type | Description
+include[] |  | string | If included, will return additional details specific to the content associated with each item. Refer to theModule Item specificationfor more details. Includes standard lock information for each item.Allowed values:content_details
+search_term |  | string | The partial title of the items to match and return.
+student_id |  | string | Returns module completion information for the student with this id.
+
+If included, will return additional details specific to the content associated with each item. Refer to theModule Item specificationfor more details. Includes standard lock information for each item.
+Allowed values:content_details
+The partial title of the items to match and return.
+Returns module completion information for the student with this id.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/222/modules/123/items
+
+
+Show module itemContextModuleItemsApiController#show
+
+
+
+GET /api/v1/courses/:course_id/modules/:module_id/items/:id
+
+Get information about a single module item
+Parameter |  | Type | Description
+include[] |  | string | If included, will return additional details specific to the content associated with this item. Refer to theModule Item specificationfor more details. Includes standard lock information for each item.Allowed values:content_details
+student_id |  | string | Returns module completion information for the student with this id.
+
+If included, will return additional details specific to the content associated with this item. Refer to theModule Item specificationfor more details. Includes standard lock information for each item.
+Allowed values:content_details
+Returns module completion information for the student with this id.
+curl -H 'Authorization: Bearer <token>' \
+     https://<canvas>/api/v1/courses/222/modules/123/items/768
+
+
+Create a module itemContextModuleItemsApiController#create
+
+
+
+POST /api/v1/courses/:course_id/modules/:module_id/items
+
+Create and return a new module item
+Parameter |  | Type | Description
+module_item[title] |  | string | The name of the module item and associated content
+module_item[type] | Required | string | The type of content linked to the itemAllowed values:File,Page,Discussion,Assignment,Quiz,SubHeader,ExternalUrl,ExternalTool
+module_item[content_id] | Required | string | The id of the content to link to the module item. Required, except for âExternalUrlâ, âPageâ, and âSubHeaderâ types.
+module_item[position] |  | integer | The position of this item in the module (1-based).
+module_item[indent] |  | integer | 0-based indent level; module items may be indented to show a hierarchy
+module_item[page_url] |  | string | Suffix for the linked wiki page (e.g. âfront-pageâ). Required for âPageâ type.
+module_item[external_url] |  | string | External url that the item points to. [Required for âExternalUrlâ and âExternalToolâ types.
+module_item[new_tab] |  | boolean | Whether the external tool opens in a new tab. Only applies to âExternalToolâ type.
+module_item[completion_requirement][type] |  | string | Completion requirement for this module item. âmust_viewâ: Applies to all item types âmust_contributeâ: Only applies to âAssignmentâ, âDiscussionâ, and âPageâ types âmust_submitâ, âmin_scoreâ: Only apply to âAssignmentâ and âQuizâ types âmust_mark_doneâ: Only applies to âAssignmentâ and âPageâ types Inapplicable types will be ignoredAllowed values:must_view,must_contribute,must_submit,must_mark_done
+module_item[completion_requirement][min_score] |  | integer | Minimum score required to complete. Required for completion_requirement type âmin_scoreâ.
+module_item[iframe][width] |  | integer | Width of the ExternalTool on launch
+module_item[iframe][height] |  | integer | Height of the ExternalTool on launch
+
+The name of the module item and associated content
+The type of content linked to the item
+Allowed values:File,Page,Discussion,Assignment,Quiz,SubHeader,ExternalUrl,ExternalTool
+The id of the content to link to the module item. Required, except for âExternalUrlâ, âPageâ, and âSubHeaderâ types.
+The position of this item in the module (1-based).
+0-based indent level; module items may be indented to show a hierarchy
+Suffix for the linked wiki page (e.g. âfront-pageâ). Required for âPageâ type.
+External url that the item points to. [Required for âExternalUrlâ and âExternalToolâ types.
+Whether the external tool opens in a new tab. Only applies to âExternalToolâ type.
+Completion requirement for this module item. âmust_viewâ: Applies to all item types âmust_contributeâ: Only applies to âAssignmentâ, âDiscussionâ, and âPageâ types âmust_submitâ, âmin_scoreâ: Only apply to âAssignmentâ and âQuizâ types âmust_mark_doneâ: Only applies to âAssignmentâ and âPageâ types Inapplicable types will be ignored
+Allowed values:must_view,must_contribute,must_submit,must_mark_done
+Minimum score required to complete. Required for completion_requirement type âmin_scoreâ.
+Width of the ExternalTool on launch
+Height of the ExternalTool on launch
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items \
+  -X POST \
+  -H 'Authorization: Bearer <token>' \
+  -d 'module_item[title]=module item' \
+  -d 'module_item[type]=ExternalTool' \
+  -d 'module_item[content_id]=10' \
+  -d 'module_item[position]=2' \
+  -d 'module_item[indent]=1' \
+  -d 'module_item[new_tab]=true' \
+  -d 'module_item[iframe][width]=300' \
+  -d 'module_item[iframe][height]=200'
+
+
+Update a module itemContextModuleItemsApiController#update
+
+
+
+PUT /api/v1/courses/:course_id/modules/:module_id/items/:id
+
+Update and return an existing module item
+Parameter |  | Type | Description
+module_item[title] |  | string | The name of the module item
+module_item[position] |  | integer | The position of this item in the module (1-based)
+module_item[indent] |  | integer | 0-based indent level; module items may be indented to show a hierarchy
+module_item[external_url] |  | string | External url that the item points to. Only applies to âExternalUrlâ type.
+module_item[new_tab] |  | boolean | Whether the external tool opens in a new tab. Only applies to âExternalToolâ type.
+module_item[completion_requirement][type] |  | string | Completion requirement for this module item. âmust_viewâ: Applies to all item types âmust_contributeâ: Only applies to âAssignmentâ, âDiscussionâ, and âPageâ types âmust_submitâ, âmin_scoreâ: Only apply to âAssignmentâ and âQuizâ types âmust_mark_doneâ: Only applies to âAssignmentâ and âPageâ types Inapplicable types will be ignoredAllowed values:must_view,must_contribute,must_submit,must_mark_done
+module_item[completion_requirement][min_score] |  | integer | Minimum score required to complete, Required for completion_requirement type âmin_scoreâ.
+module_item[published] |  | boolean | Whether the module item is published and visible to students.
+module_item[module_id] |  | string | Move this item to another module by specifying the target module id here. The target module must be in the same course.
+
+The name of the module item
+The position of this item in the module (1-based)
+0-based indent level; module items may be indented to show a hierarchy
+External url that the item points to. Only applies to âExternalUrlâ type.
+Whether the external tool opens in a new tab. Only applies to âExternalToolâ type.
+Completion requirement for this module item. âmust_viewâ: Applies to all item types âmust_contributeâ: Only applies to âAssignmentâ, âDiscussionâ, and âPageâ types âmust_submitâ, âmin_scoreâ: Only apply to âAssignmentâ and âQuizâ types âmust_mark_doneâ: Only applies to âAssignmentâ and âPageâ types Inapplicable types will be ignored
+Allowed values:must_view,must_contribute,must_submit,must_mark_done
+Minimum score required to complete, Required for completion_requirement type âmin_scoreâ.
+Whether the module item is published and visible to students.
+Move this item to another module by specifying the target module id here. The target module must be in the same course.
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items/<item_id> \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'module_item[position]=2' \
+  -d 'module_item[indent]=1' \
+  -d 'module_item[new_tab]=true'
+
+
+Select a mastery pathContextModuleItemsApiController#select_mastery_path
+
+
+
+POST /api/v1/courses/:course_id/modules/:module_id/items/:id/select_mastery_path
+
+Select a mastery path when module item includes several possible paths. Requires Mastery Paths feature to be enabled.  Returns a compound document with the assignments included in the given path and any module items related to those assignments
+Parameter |  | Type | Description
+assignment_set_id |  | string | Assignment set chosen, as specified in the mastery_paths portion of the context module item response
+student_id |  | string | Which student the selection applies to.  If not specified, current user is implied.
+
+Assignment set chosen, as specified in the mastery_paths portion of the context module item response
+Which student the selection applies to.  If not specified, current user is implied.
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items/<item_id>/select_master_path \
+  -X POST \
+  -H 'Authorization: Bearer <token>' \
+  -d 'assignment_set_id=2992'
+
+
+Delete module itemContextModuleItemsApiController#destroy
+
+
+
+DELETE /api/v1/courses/:course_id/modules/:module_id/items/:id
+
+Delete a module item
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items/<item_id> \
+  -X Delete \
+  -H 'Authorization: Bearer <token>'
+
+
+Mark module item as done/not doneContextModuleItemsApiController#mark_as_done
+
+
+
+PUT /api/v1/courses/:course_id/modules/:module_id/items/:id/done
+
+Mark a module item as done/not done. Use HTTP method PUT to mark as done, and DELETE to mark as not done.
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items/<item_id>/done \
+  -X Put \
+  -H 'Authorization: Bearer <token>'
+
+
+Get module item sequenceContextModuleItemsApiController#item_sequence
+
+
+
+GET /api/v1/courses/:course_id/module_item_sequence
+
+Given an asset in a course, find the ModuleItem it belongs to, the previous and next Module Items in the course sequence, and also any applicable mastery path rules
+Parameter |  | Type | Description
+asset_type |  | string | The type of asset to find module sequence information for. Use the ModuleItem if it is known (e.g., the user navigated from a module item), since this will avoid ambiguity if the asset appears more than once in the module sequence.Allowed values:ModuleItem,File,Page,Discussion,Assignment,Quiz,ExternalTool
+asset_id |  | integer | The id of the asset (or the url in the case of a Page)
+
+The type of asset to find module sequence information for. Use the ModuleItem if it is known (e.g., the user navigated from a module item), since this will avoid ambiguity if the asset appears more than once in the module sequence.
+Allowed values:ModuleItem,File,Page,Discussion,Assignment,Quiz,ExternalTool
+The id of the asset (or the url in the case of a Page)
+curl https://<canvas>/api/v1/courses/<course_id>/module_item_sequence?asset_type=Assignment&asset_id=123 \
+  -H 'Authorization: Bearer <token>'
+
+
+Mark module item readContextModuleItemsApiController#mark_item_read
+
+
+
+POST /api/v1/courses/:course_id/modules/:module_id/items/:id/mark_read
+
+Fulfills âmust viewâ requirement for a module item. It is generally not necessary to do this explicitly, but it is provided for applications that need to access external content directly (bypassing the html_url redirect that normally allows Canvas to fulfill âmust viewâ requirements).
+This endpoint cannot be used to complete requirements on locked or unpublished module items.
+curl https://<canvas>/api/v1/courses/<course_id>/modules/<module_id>/items/<item_id>/mark_read \
+  -X POST \
+  -H 'Authorization: Bearer <token>'
+
+
+List a module's overridesModuleAssignmentOverridesController#index
+
+
+
+GET /api/v1/courses/:course_id/modules/:context_module_id/assignment_overrides
+
+Returns a paginated list of AssignmentOverrides that apply to the ContextModule.
+Note: this API is still under development and will not function until the feature is enabled.
+curl https://<canvas>/api/v1/courses/:course_id/modules/:context_module_id/assignment_overrides \
+  -H 'Authorization: Bearer <token>'
+
+
+Update a module's overridesModuleAssignmentOverridesController#bulk_update
+
+
+
+PUT /api/v1/courses/:course_id/modules/:context_module_id/assignment_overrides
+
+Accepts a list of overrides and applies them to the ContextModule. Returns 204 No Content response code if successful.
+Note: this API is still under development and will not function until the feature is enabled.
+Parameter |  | Type | Description
+overrides[] | Required | Array | List of overrides to apply to the module. Overrides that already exist should include an ID and will be updated if needed. New overrides will be created for overrides in the list without an ID. Overrides not included in the list will be deleted. Providing an empty list will delete all of the moduleâs overrides. Keys for each override object can include: âidâ, âtitleâ, âstudent_idsâ, and âcourse_section_idâ.
+
+List of overrides to apply to the module. Overrides that already exist should include an ID and will be updated if needed. New overrides will be created for overrides in the list without an ID. Overrides not included in the list will be deleted. Providing an empty list will delete all of the moduleâs overrides. Keys for each override object can include: âidâ, âtitleâ, âstudent_idsâ, and âcourse_section_idâ.
+curl https://<canvas>/api/v1/courses/:course_id/modules/:context_module_id/assignment_overrides \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "overrides": [
+          {
+            "id": 212,
+            "course_section_id": 3564
+          },
+          {
+            "title": "an assignment override",
+            "student_ids": [1, 2, 3]
+          }
+        ]
+      }'

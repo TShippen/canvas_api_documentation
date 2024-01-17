@@ -1,0 +1,90 @@
+Progress API
+
+
+API for querying the progress of asynchronous API operations.
+API for querying the progress of asynchronous API operations.
+
+
+A Progress object looks like:
+
+{
+  // the ID of the Progress object
+  "id": 1,
+  // the context owning the job.
+  "context_id": 1,
+  "context_type": "Account",
+  // the id of the user who started the job
+  "user_id": 123,
+  // the type of operation
+  "tag": "course_batch_update",
+  // percent completed
+  "completion": 100,
+  // the state of the job one of 'queued', 'running', 'completed', 'failed'
+  "workflow_state": "completed",
+  // the time the job was created
+  "created_at": "2013-01-15T15:00:00Z",
+  // the time the job was last updated
+  "updated_at": "2013-01-15T15:04:00Z",
+  // optional details about the job
+  "message": "17 courses processed",
+  // optional results of the job. omitted when job is still pending
+  "results": {"id":"123"},
+  // url where a progress update can be retrieved
+  "url": "https://canvas.example.edu/api/v1/progress/1"
+}
+
+
+A Progress object looks like:
+
+{
+  // the ID of the Progress object
+  "id": 1,
+  // the context owning the job.
+  "context_id": 1,
+  "context_type": "Account",
+  // the id of the user who started the job
+  "user_id": 123,
+  // the type of operation
+  "tag": "course_batch_update",
+  // percent completed
+  "completion": 100,
+  // the state of the job one of 'queued', 'running', 'completed', 'failed'
+  "workflow_state": "completed",
+  // the time the job was created
+  "created_at": "2013-01-15T15:00:00Z",
+  // the time the job was last updated
+  "updated_at": "2013-01-15T15:04:00Z",
+  // optional details about the job
+  "message": "17 courses processed",
+  // optional results of the job. omitted when job is still pending
+  "results": {"id":"123"},
+  // url where a progress update can be retrieved with an LTI access token
+  "url": "https://canvas.example.edu/api/lti/courses/1/progress/1"
+}
+
+
+Query progressProgressController#show
+
+
+
+GET /api/v1/progress/:id
+
+Return completion and status information about an asynchronous job
+
+
+Cancel progressProgressController#cancel
+
+
+
+POST /api/v1/progress/:id/cancel
+
+Cancel an asynchronous job associated with a Progress object If you include âmessageâ in the POSTed data, it will be set on the Progress and returned. This is handy to distinguish between cancel and fail for a workflow_state of âfailedâ.
+
+
+Query progressLti::Ims::ProgressController#show
+
+
+
+GET /api/lti/courses/:course_id/progress/:id
+
+Return completion and status information about an asynchronous job

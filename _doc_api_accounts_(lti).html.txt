@@ -1,0 +1,34 @@
+Accounts (LTI) API
+
+
+API for accessing account data using an LTI dev key. Allows a tool to get account
+information via LTI Advantage authorization scheme, which does not require a
+user session like normal developer keys do. Requires the account lookup scope on
+the LTI key.
+
+
+An Account object looks like:
+
+{
+  // the ID of the Account object
+  "id": 2,
+  // The display name of the account
+  "name": "Canvas Account",
+  // The UUID of the account
+  "uuid": "WvAHhY5FINzq5IyRIJybGeiXyFkG3SqHUPb7jZY5",
+  // The account's parent ID, or null if this is the root account
+  "parent_account_id": 1,
+  // The ID of the root account, or null if this is the root account
+  "root_account_id": 1,
+  // The state of the account. Can be 'active' or 'deleted'.
+  "workflow_state": "active"
+}
+
+
+Get accountLti::AccountLookupController#show
+
+
+
+GET /api/lti/accounts/:account_id
+
+Retrieve information on an individual account, given by local or global ID.

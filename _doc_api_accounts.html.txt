@@ -1,0 +1,400 @@
+Accounts API
+
+
+API for accessing account data.
+
+
+An Account object looks like:
+
+{
+  // the ID of the Account object
+  "id": 2,
+  // The display name of the account
+  "name": "Canvas Account",
+  // The UUID of the account
+  "uuid": "WvAHhY5FINzq5IyRIJybGeiXyFkG3SqHUPb7jZY5",
+  // The account's parent ID, or null if this is the root account
+  "parent_account_id": 1,
+  // The ID of the root account, or null if this is the root account
+  "root_account_id": 1,
+  // The storage quota for the account in megabytes, if not otherwise specified
+  "default_storage_quota_mb": 500,
+  // The storage quota for a user in the account in megabytes, if not otherwise
+  // specified
+  "default_user_storage_quota_mb": 50,
+  // The storage quota for a group in the account in megabytes, if not otherwise
+  // specified
+  "default_group_storage_quota_mb": 50,
+  // The default time zone of the account. Allowed time zones are
+  // {http://www.iana.org/time-zones IANA time zones} or friendlier
+  // {http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html Ruby on Rails
+  // time zones}.
+  "default_time_zone": "America/Denver",
+  // The account's identifier in the Student Information System. Only included if
+  // the user has permission to view SIS information.
+  "sis_account_id": "123xyz",
+  // The account's identifier in the Student Information System. Only included if
+  // the user has permission to view SIS information.
+  "integration_id": "123xyz",
+  // The id of the SIS import if created through SIS. Only included if the user
+  // has permission to manage SIS information.
+  "sis_import_id": 12,
+  // The account's identifier that is sent as context_id in LTI launches.
+  "lti_guid": "123xyz",
+  // The state of the account. Can be 'active' or 'deleted'.
+  "workflow_state": "active"
+}
+
+
+A TermsOfService object looks like:
+
+{
+  // Terms Of Service id
+  "id": 1,
+  // The given type for the Terms of Service
+  "terms_type": "default",
+  // Boolean dictating if the user must accept Terms of Service
+  "passive": false,
+  // The id of the root account that owns the Terms of Service
+  "account_id": 1,
+  // Content of the Terms of Service
+  "content": "To be or not to be that is the question",
+  // The type of self registration allowed
+  "self_registration_type": "["none", "observer", "all"]"
+}
+
+
+A HelpLink object looks like:
+
+{
+  // The ID of the help link
+  "id": "instructor_question",
+  // The name of the help link
+  "text": "Ask Your Instructor a Question",
+  // The description of the help link
+  "subtext": "Questions are submitted to your instructor",
+  // The URL of the help link
+  "url": "#teacher_feedback",
+  // The type of the help link
+  "type": "default",
+  // The roles that have access to this help link
+  "available_to": ["user", "student", "teacher", "admin", "observer", "unenrolled"]
+}
+
+
+A HelpLinks object looks like:
+
+{
+  // Help link button title
+  "help_link_name": "Help And Policies",
+  // Help link button icon
+  "help_link_icon": "help",
+  // Help links defined by the account. Could include default help links.
+  "custom_help_links": [{"id":"link1","text":"Custom Link!","subtext":"Something something.","url":"https:\/\/google.com","type":"custom","available_to":["user","student","teacher","admin","observer","unenrolled"],"is_featured":true,"is_new":false,"feature_headline":"Check this out!"}],
+  // Default help links provided when account has not set help links of their own.
+  "default_help_links": [{"available_to":["student"],"text":"Ask Your Instructor a Question","subtext":"Questions are submitted to your instructor","url":"#teacher_feedback","type":"default","id":"instructor_question","is_featured":false,"is_new":true,"feature_headline":""}, {"available_to":["user","student","teacher","admin","observer","unenrolled"],"text":"Search the Canvas Guides","subtext":"Find answers to common questions","url":"https:\/\/community.canvaslms.com\/t5\/Guides\/ct-p\/guides","type":"default","id":"search_the_canvas_guides","is_featured":false,"is_new":false,"feature_headline":""}, {"available_to":["user","student","teacher","admin","observer","unenrolled"],"text":"Report a Problem","subtext":"If Canvas misbehaves, tell us about it","url":"#create_ticket","type":"default","id":"report_a_problem","is_featured":false,"is_new":false,"feature_headline":""}]
+}
+
+
+List accountsAccountsController#index
+
+
+
+GET /api/v1/accounts
+
+A paginated list of accounts that the current user can view or manage. Typically, students and even teachers will get an empty list in response, only account admins can view the accounts that they are in.
+Parameter |  | Type | Description
+include[] |  | string | Array of additional information to include.âlti_guidâthe âtool_consumer_instance_guidâ that will be sent for this account on LTI launchesâregistration_settingsâreturns info about the privacy policy and terms of useâservicesâreturns services and whether they are enabled (requires account management permissions)Allowed values:lti_guid,registration_settings,services
+
+Array of additional information to include.
+the âtool_consumer_instance_guidâ that will be sent for this account on LTI launches
+returns info about the privacy policy and terms of use
+returns services and whether they are enabled (requires account management permissions)
+Allowed values:lti_guid,registration_settings,services
+
+
+Get accounts that admins can manageAccountsController#manageable_accounts
+
+
+
+GET /api/v1/manageable_accounts
+
+A paginated list of accounts where the current user has permission to create or manage courses. List will be empty for students and teachers as only admins can view which accounts they are in.
+
+
+Get accounts that users can create courses inAccountsController#course_creation_accounts
+
+
+
+GET /api/v1/course_creation_accounts
+
+A paginated list of accounts where the current user has permission to create courses.
+
+
+List accounts for course adminsAccountsController#course_accounts
+
+
+
+GET /api/v1/course_accounts
+
+A paginated list of accounts that the current user can view through their admin course enrollments. (Teacher, TA, or designer enrollments). Only returns âidâ, ânameâ, âworkflow_stateâ, âroot_account_idâ and âparent_account_idâ
+
+
+Get a single accountAccountsController#show
+
+
+
+GET /api/v1/accounts/:id
+
+Retrieve information on an individual account, given by id or sis sis_account_id.
+
+
+SettingsAccountsController#show_settings
+
+
+
+GET /api/v1/accounts/:account_id/settings
+
+Returns a JSON object containing a subset of settings for the specified account. Itâs possible an empty set will be returned if no settings are applicable. The caller must be an Account admin with the manage_account_settings permission.
+curl https://<canvas>/api/v1/accounts/<account_id>/settings \
+  -H 'Authorization: Bearer <token>'
+{"microsoft_sync_enabled": true, "microsoft_sync_login_attribute_suffix": false}
+
+
+PermissionsAccountsController#permissions
+
+
+
+GET /api/v1/accounts/:account_id/permissions
+
+Returns permission information for the calling user and the given account. You may use âself` as the account id to check permissions against the domain root account. The caller must have an account role or admin (teacher/TA/designer) enrollment in a course in the account.
+See also theCourseandGroupcounterparts.
+Parameter |  | Type | Description
+permissions[] |  | string | List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+
+List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+curl https://<canvas>/api/v1/accounts/self/permissions \
+  -H 'Authorization: Bearer <token>' \
+  -d 'permissions[]=manage_account_memberships' \
+  -d 'permissions[]=become_user'
+{'manage_account_memberships': 'false', 'become_user': 'true'}
+
+
+Get the sub-accounts of an accountAccountsController#sub_accounts
+
+
+
+GET /api/v1/accounts/:account_id/sub_accounts
+
+List accounts that are sub-accounts of the given account.
+Parameter |  | Type | Description
+recursive |  | boolean | If true, the entire account tree underneath this account will be returned (though still paginated). If false, only direct sub-accounts of this account will be returned. Defaults to false.
+
+If true, the entire account tree underneath this account will be returned (though still paginated). If false, only direct sub-accounts of this account will be returned. Defaults to false.
+curl https://<canvas>/api/v1/accounts/<account_id>/sub_accounts \
+     -H 'Authorization: Bearer <token>'
+
+
+Get the Terms of ServiceAccountsController#terms_of_service
+
+
+
+GET /api/v1/accounts/:account_id/terms_of_service
+
+Returns the terms of service for that account
+
+
+Get help linksAccountsController#help_links
+
+
+
+GET /api/v1/accounts/:account_id/help_links
+
+Returns the help links for that account
+
+
+Get the manually-created courses sub-account for the domain root accountAccountsController#manually_created_courses_account
+
+
+
+GET /api/v1/manually_created_courses_account
+
+
+
+List active courses in an accountAccountsController#courses_api
+
+
+
+GET /api/v1/accounts/:account_id/courses
+
+Retrieve a paginated list of courses in this account.
+Parameter |  | Type | Description
+with_enrollments |  | boolean | If true, include only courses with at least one enrollment.  If false, include only courses with no enrollments.  If not present, do not filter on course enrollment status.
+enrollment_type[] |  | string | If set, only return courses that have at least one user enrolled in in the course with one of the specified enrollment types.Allowed values:teacher,student,ta,observer,designer
+published |  | boolean | If true, include only published courses.  If false, exclude published courses.  If not present, do not filter on published status.
+completed |  | boolean | If true, include only completed courses (these may be in state âcompletedâ, or their enrollment term may have ended).  If false, exclude completed courses.  If not present, do not filter on completed status.
+blueprint |  | boolean | If true, include only blueprint courses. If false, exclude them. If not present, do not filter on this basis.
+blueprint_associated |  | boolean | If true, include only courses that inherit content from a blueprint course. If false, exclude them. If not present, do not filter on this basis.
+public |  | boolean | If true, include only public courses. If false, exclude them. If not present, do not filter on this basis.
+by_teachers[] |  | integer | List of User IDs of teachers; if supplied, include only courses taught by one of the referenced users.
+by_subaccounts[] |  | integer | List of Account IDs; if supplied, include only courses associated with one of the referenced subaccounts.
+hide_enrollmentless_courses |  | boolean | If present, only return courses that have at least one enrollment. Equivalent to âwith_enrollments=trueâ; retained for compatibility.
+state[] |  | string | If set, only return courses that are in the given state(s). By default, all states but âdeletedâ are returned.Allowed values:created,claimed,available,completed,deleted,all
+enrollment_term_id |  | integer | If set, only includes courses from the specified term.
+search_term |  | string | The partial course name, code, or full ID to match and return in the results list. Must be at least 3 characters.
+include[] |  | string | All explanations can be seen in theCourse API index documentationâsectionsâ, âneeds_grading_countâ and âtotal_scoresâ are not valid options at the account levelAllowed values:syllabus_body,term,course_progress,storage_quota_used_mb,total_students,teachers,account_name,concluded
+sort |  | string | The column to sort results by.Allowed values:course_name,sis_course_id,teacher,account_name
+order |  | string | The order to sort the given column by.Allowed values:asc,desc
+search_by |  | string | The filter to search by. âcourseâ searches for course names, course codes, and SIS IDs. âteacherâ searches for teacher namesAllowed values:course,teacher
+starts_before |  | Date | If set, only return courses that start before the value (inclusive) or their enrollment term starts before the value (inclusive) or both the courseâs start_at and the enrollment termâs start_at are set to null. The value should be formatted as: yyyy-mm-dd or ISO 8601 YYYY-MM-DDTHH:MM:SSZ.
+ends_after |  | Date | If set, only return courses that end after the value (inclusive) or their enrollment term ends after the value (inclusive) or both the courseâs end_at and the enrollment termâs end_at are set to null. The value should be formatted as: yyyy-mm-dd or ISO 8601 YYYY-MM-DDTHH:MM:SSZ.
+homeroom |  | boolean | If set, only return homeroom courses.
+
+If true, include only courses with at least one enrollment.  If false, include only courses with no enrollments.  If not present, do not filter on course enrollment status.
+If set, only return courses that have at least one user enrolled in in the course with one of the specified enrollment types.
+Allowed values:teacher,student,ta,observer,designer
+If true, include only published courses.  If false, exclude published courses.  If not present, do not filter on published status.
+If true, include only completed courses (these may be in state âcompletedâ, or their enrollment term may have ended).  If false, exclude completed courses.  If not present, do not filter on completed status.
+If true, include only blueprint courses. If false, exclude them. If not present, do not filter on this basis.
+If true, include only courses that inherit content from a blueprint course. If false, exclude them. If not present, do not filter on this basis.
+If true, include only public courses. If false, exclude them. If not present, do not filter on this basis.
+List of User IDs of teachers; if supplied, include only courses taught by one of the referenced users.
+List of Account IDs; if supplied, include only courses associated with one of the referenced subaccounts.
+If present, only return courses that have at least one enrollment. Equivalent to âwith_enrollments=trueâ; retained for compatibility.
+If set, only return courses that are in the given state(s). By default, all states but âdeletedâ are returned.
+Allowed values:created,claimed,available,completed,deleted,all
+If set, only includes courses from the specified term.
+The partial course name, code, or full ID to match and return in the results list. Must be at least 3 characters.
+All explanations can be seen in theCourse API index documentation
+âsectionsâ, âneeds_grading_countâ and âtotal_scoresâ are not valid options at the account level
+Allowed values:syllabus_body,term,course_progress,storage_quota_used_mb,total_students,teachers,account_name,concluded
+The column to sort results by.
+Allowed values:course_name,sis_course_id,teacher,account_name
+The order to sort the given column by.
+Allowed values:asc,desc
+The filter to search by. âcourseâ searches for course names, course codes, and SIS IDs. âteacherâ searches for teacher names
+Allowed values:course,teacher
+If set, only return courses that start before the value (inclusive) or their enrollment term starts before the value (inclusive) or both the courseâs start_at and the enrollment termâs start_at are set to null. The value should be formatted as: yyyy-mm-dd or ISO 8601 YYYY-MM-DDTHH:MM:SSZ.
+If set, only return courses that end after the value (inclusive) or their enrollment term ends after the value (inclusive) or both the courseâs end_at and the enrollment termâs end_at are set to null. The value should be formatted as: yyyy-mm-dd or ISO 8601 YYYY-MM-DDTHH:MM:SSZ.
+If set, only return homeroom courses.
+
+
+Update an accountAccountsController#update
+
+
+
+PUT /api/v1/accounts/:id
+
+Update an existing account.
+Parameter |  | Type | Description
+account[name] |  | string | Updates the account name
+account[sis_account_id] |  | string | Updates the account sis_account_id Must have manage_sis permission and must not be a root_account.
+account[default_time_zone] |  | string | The default time zone of the account. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+account[default_storage_quota_mb] |  | integer | The default course storage quota to be used, if not otherwise specified.
+account[default_user_storage_quota_mb] |  | integer | The default user storage quota to be used, if not otherwise specified.
+account[default_group_storage_quota_mb] |  | integer | The default group storage quota to be used, if not otherwise specified.
+account[course_template_id] |  | integer | The ID of a course to be used as a template for all newly created courses. Empty means to inherit the setting from parent account, 0 means to not use a template even if a parent account has one set. The course must be marked as a template.
+account[settings][restrict_student_past_view][value] |  | boolean | Restrict students from viewing courses after end date
+account[settings][restrict_student_past_view][locked] |  | boolean | Lock this setting for sub-accounts and courses
+account[settings][restrict_student_future_view][value] |  | boolean | Restrict students from viewing courses before start date
+account[settings][microsoft_sync_enabled] |  | boolean | Determines whether this account has Microsoft Teams Sync enabled or not.Note that if you are altering Microsoft Teams sync settings you must enable the Microsoft Group enrollment syncing feature flag. In addition, if you are enabling Microsoft Teams sync, you must also specify a tenant, login attribute, and a remote attribute. Specifying a suffix to use is optional.
+account[settings][microsoft_sync_tenant] |  | string | The tenant this account should use when using Microsoft Teams Sync. This should be an Azure Active Directory domain name.
+account[settings][microsoft_sync_login_attribute] |  | string | The attribute this account should use to lookup users when using Microsoft Teams Sync. Must be one of âsubâ, âemailâ, âoidâ, âpreferred_usernameâ, or âintegration_idâ.
+account[settings][microsoft_sync_login_attribute_suffix] |  | string | A suffix that will be appended to the result of the login attribute when associating Canvas users with Microsoft users. Must be under 255 characters and contain no whitespace. This field is optional.
+account[settings][microsoft_sync_remote_attribute] |  | string | The Active Directory attribute to use when associating Canvas users with Microsoft users. Must be one of âmailâ, âmailNicknameâ, or âuserPrincipalNameâ.
+account[settings][restrict_student_future_view][locked] |  | boolean | Lock this setting for sub-accounts and courses
+account[settings][lock_all_announcements][value] |  | boolean | Disable comments on announcements
+account[settings][lock_all_announcements][locked] |  | boolean | Lock this setting for sub-accounts and courses
+account[settings][usage_rights_required][value] |  | boolean | Copyright and license information must be provided for files before they are published.
+account[settings][usage_rights_required][locked] |  | boolean | Lock this setting for sub-accounts and courses
+account[settings][restrict_student_future_listing][value] |  | boolean | Restrict students from viewing future enrollments in course list
+account[settings][restrict_student_future_listing][locked] |  | boolean | Lock this setting for sub-accounts and courses
+account[settings][conditional_release][value] |  | boolean | Enable or disable individual learning paths for students based on assessment
+account[settings][conditional_release][locked] |  | boolean | Lock this setting for sub-accounts and courses
+override_sis_stickiness |  | boolean | Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+account[settings][lock_outcome_proficiency][value] |  | boolean | DEPRECATEDRestrict instructors from changing mastery scale
+account[lock_outcome_proficiency][locked] |  | boolean | DEPRECATEDLock this setting for sub-accounts and courses
+account[settings][lock_proficiency_calculation][value] |  | boolean | DEPRECATEDRestrict instructors from changing proficiency calculation method
+account[lock_proficiency_calculation][locked] |  | boolean | DEPRECATEDLock this setting for sub-accounts and courses
+account[services] |  | Hash | Give this a set of keys and boolean values to enable or disable services matching the keys
+
+Updates the account name
+Updates the account sis_account_id Must have manage_sis permission and must not be a root_account.
+The default time zone of the account. Allowed time zones areIANA time zonesor friendlierRuby on Rails time zones.
+The default course storage quota to be used, if not otherwise specified.
+The default user storage quota to be used, if not otherwise specified.
+The default group storage quota to be used, if not otherwise specified.
+The ID of a course to be used as a template for all newly created courses. Empty means to inherit the setting from parent account, 0 means to not use a template even if a parent account has one set. The course must be marked as a template.
+Restrict students from viewing courses after end date
+Lock this setting for sub-accounts and courses
+Restrict students from viewing courses before start date
+Determines whether this account has Microsoft Teams Sync enabled or not.
+Note that if you are altering Microsoft Teams sync settings you must enable the Microsoft Group enrollment syncing feature flag. In addition, if you are enabling Microsoft Teams sync, you must also specify a tenant, login attribute, and a remote attribute. Specifying a suffix to use is optional.
+The tenant this account should use when using Microsoft Teams Sync. This should be an Azure Active Directory domain name.
+The attribute this account should use to lookup users when using Microsoft Teams Sync. Must be one of âsubâ, âemailâ, âoidâ, âpreferred_usernameâ, or âintegration_idâ.
+A suffix that will be appended to the result of the login attribute when associating Canvas users with Microsoft users. Must be under 255 characters and contain no whitespace. This field is optional.
+The Active Directory attribute to use when associating Canvas users with Microsoft users. Must be one of âmailâ, âmailNicknameâ, or âuserPrincipalNameâ.
+Lock this setting for sub-accounts and courses
+Disable comments on announcements
+Lock this setting for sub-accounts and courses
+Copyright and license information must be provided for files before they are published.
+Lock this setting for sub-accounts and courses
+Restrict students from viewing future enrollments in course list
+Lock this setting for sub-accounts and courses
+Enable or disable individual learning paths for students based on assessment
+Lock this setting for sub-accounts and courses
+Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+Restrict instructors from changing mastery scale
+Lock this setting for sub-accounts and courses
+Restrict instructors from changing proficiency calculation method
+Lock this setting for sub-accounts and courses
+Give this a set of keys and boolean values to enable or disable services matching the keys
+curl https://<canvas>/api/v1/accounts/<account_id> \
+  -X PUT \
+  -H 'Authorization: Bearer <token>' \
+  -d 'account[name]=New account name' \
+  -d 'account[default_time_zone]=Mountain Time (US & Canada)' \
+  -d 'account[default_storage_quota_mb]=450'
+
+
+Delete a user from the root accountAccountsController#remove_user
+
+
+
+DELETE /api/v1/accounts/:account_id/users/:user_id
+
+Delete a user record from a Canvas root account. If a user is associated with multiple root accounts (in a multi-tenant instance of Canvas), this action will NOT remove them from the other accounts.
+WARNING: This API will allow a user to remove themselves from the account. If they do this, they wonât be able to make API calls or log into Canvas at that account.
+curl https://<canvas>/api/v1/accounts/3/users/5 \
+  -H 'Authorization: Bearer <ACCESS_TOKEN>' \
+  -X DELETE
+
+
+Create a new sub-accountSubAccountsController#create
+
+
+
+POST /api/v1/accounts/:account_id/sub_accounts
+
+Add a new sub-account to a given account.
+Parameter |  | Type | Description
+account[name] | Required | string | The name of the new sub-account.
+account[sis_account_id] |  | string | The accountâs identifier in the Student Information System.
+account[default_storage_quota_mb] |  | integer | The default course storage quota to be used, if not otherwise specified.
+account[default_user_storage_quota_mb] |  | integer | The default user storage quota to be used, if not otherwise specified.
+account[default_group_storage_quota_mb] |  | integer | The default group storage quota to be used, if not otherwise specified.
+
+The name of the new sub-account.
+The accountâs identifier in the Student Information System.
+The default course storage quota to be used, if not otherwise specified.
+The default user storage quota to be used, if not otherwise specified.
+The default group storage quota to be used, if not otherwise specified.
+
+
+Delete a sub-accountSubAccountsController#destroy
+
+
+
+DELETE /api/v1/accounts/:account_id/sub_accounts/:id
+
+Cannot delete an account with active courses or active sub_accounts. Cannot delete a root_account

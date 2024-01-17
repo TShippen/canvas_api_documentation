@@ -1,0 +1,176 @@
+Media Objects API
+
+
+Closed captions added to a video MediaObject
+When you upload or record webcam video/audio to kaltura, it makes a Media Object
+
+
+A MediaTrack object looks like:
+
+{
+  "id": 42,
+  "user_id": 1,
+  "media_object_id": 14,
+  "kind": "subtitles",
+  "locale": "es",
+  "content": "1]\\n00:00:00,000 --> 00:00:01,251\nI'm spanish",
+  "created_at": "Mon, 24 Feb 2020 16:04:02 EST -05:00",
+  "updated_at": "Mon, 24 Feb 2020 16:59:05 EST -05:00",
+  "webvtt_content": "WEBVTT\n\n1]\\n00:00:00.000 --> 00:00:01.251\nI'm spanish"
+}
+
+
+A MediaObject object looks like:
+
+{
+  // whether or not the current user can upload media_tracks (subtitles) to this Media Object
+  "can_add_captions": true,
+  "user_entered_title": "User Entered Title",
+  "title": "filename-or-user-title-or-untitled",
+  "media_id": "m-JYmy6TLsHkxcrhgYmqa7XW1HCH3wEYc",
+  "media_type": "video",
+  // an array of all the media_tracks uploaded to this Media Object
+  "media_tracks": [{
+    "kind": "captions",
+    "created_at": "2012-09-27T16:46:50-06:00",
+    "updated_at": "2012-09-27T16:46:50-06:00",
+    "url": "https://<canvas>/media_objects/0_r949z9lk/media_tracks/1",
+    "id": 1,
+    "locale": "af"
+  }, {
+    "kind": "subtitles",
+    "created_at": "2012-09-27T20:29:17-06:00",
+    "updated_at": "2012-09-27T20:29:17-06:00",
+    "url": "https://<canvas>/media_objects/0_r949z9lk/media_tracks/14",
+    "id": 14,
+    "locale": "cs"
+  }],
+  // an array of all the transcoded files (flavors) available for this Media Object
+  "media_sources": [{
+    "height": "240",
+    "width": "336",
+    "content_type": "video/mp4",
+    "containerFormat": "isom",
+    "url": "http://example.com/p/100/sp/10000/download/entry_id/0_r949z9lk/flavor/0_xdp3qrpc/ks/MjUxNjY4MjlhMTkxN2VmNTA0OGRkZjY2ODNjMjgxNTkwYWE3NGMyNHwxMDA7MTAwOzEzNDkyNzU5MDY7MDsxMzQ5MTg5NTA2LjUxOTk7O2Rvd25sb2FkOjBfcjk0OXo5bGs7/relocate/download.mp4",
+    "bitrate": "382",
+    "size": "204",
+    "isOriginal": "0",
+    "fileExt": "mp4"
+  }, {
+    "height": "252",
+    "width": "336",
+    "content_type": "video/x-flv",
+    "containerFormat": "flash video",
+    "url": "http://example.com/p/100/sp/10000/download/entry_id/0_r949z9lk/flavor/0_0f2x4odx/ks/NmY2M2Q2MDdhMjBlMzA2ZmRhMWZjZjAxNWUyOTg0MzA5MDI5NGE4ZXwxMDA7MTAwOzEzNDkyNzU5MDY7MDsxMzQ5MTg5NTA2LjI5MDM7O2Rvd25sb2FkOjBfcjk0OXo5bGs7/relocate/download.flv",
+    "bitrate": "797",
+    "size": "347",
+    "isOriginal": "1",
+    "fileExt": "flv"
+  }]
+}
+
+
+List media tracks for a Media Object or AttachmentMediaTracksController#index
+
+
+
+GET /api/v1/media_objects/:media_object_id/media_tracks
+
+
+
+GET /api/v1/media_attachments/:attachment_id/media_tracks
+
+List the media tracks associated with a media object or attachment
+Parameter |  | Type | Description
+include[] |  | string | By default, index returns id, locale, kind, media_object_id, and user_id for each of the result MediaTracks. Use include[] to add additional fields. For example include[]=contentAllowed values:content,webvtt_content,updated_at,created_at
+
+By default, index returns id, locale, kind, media_object_id, and user_id for each of the result MediaTracks. Use include[] to add additional fields. For example include[]=content
+Allowed values:content,webvtt_content,updated_at,created_at
+curl https://<canvas>/api/v1/media_objects/<media_object_id>/media_tracks?include[]=content
+    -H 'Authorization: Bearer <token>'
+curl https://<canvas>/api/v1/media_attachments/<attachment_id>/media_tracks?include[]=content
+    -H 'Authorization: Bearer <token>'
+
+
+Update Media TracksMediaTracksController#update
+
+
+
+PUT /api/v1/media_objects/:media_object_id/media_tracks
+
+
+
+PUT /api/v1/media_attachments/:attachment_id/media_tracks
+
+Replace the media tracks associated with a media object or attachment with the array of tracks provided in the body. Update will delete any existing tracks not listed, leave untouched any tracks with no content field, and update or create tracks with a content field.
+Parameter |  | Type | Description
+include[] |  | string | By default, an update returns id, locale, kind, media_object_id, and user_id for each of the result MediaTracks. Use include[] to add additional fields. For example include[]=contentAllowed values:content,webvtt_content,updated_at,created_at
+
+By default, an update returns id, locale, kind, media_object_id, and user_id for each of the result MediaTracks. Use include[] to add additional fields. For example include[]=content
+Allowed values:content,webvtt_content,updated_at,created_at
+curl -X PUT https://<canvas>/api/v1/media_objects/<media_object_id>/media_tracks?include[]=content \
+  -H 'Authorization: Bearer <token>'
+  -d '[{"locale": "en"}, {"locale": "af","content": "1\r\n00:00:00,000 --> 00:00:01,251\r\nThis is the content\r\n"}]'
+curl -X PUT https://<canvas>/api/v1/media_attachments/<attachment_id>/media_tracks?include[]=content \
+  -H 'Authorization: Bearer <token>'
+  -d '[{"locale": "en"}, {"locale": "af","content": "1\r\n00:00:00,000 --> 00:00:01,251\r\nThis is the content\r\n"}]'
+
+
+List Media ObjectsMediaObjectsController#index
+
+
+
+GET /api/v1/media_objects
+
+
+
+GET /api/v1/courses/:course_id/media_objects
+
+
+
+GET /api/v1/groups/:group_id/media_objects
+
+
+
+GET /api/v1/media_attachments
+
+
+
+GET /api/v1/courses/:course_id/media_attachments
+
+
+
+GET /api/v1/groups/:group_id/media_attachments
+
+Returns media objects created by the user making the request. When using the second version, returns media objects associated with the given course.
+Parameter |  | Type | Description
+sort |  | string | Field to sort on. Default is âtitleâtitlesorts on user_entered_title if available, title if not.created_atsorts on the objectâs creation time.Allowed values:title,created_at
+order |  | string | Sort direction. Default is âascâAllowed values:asc,desc
+exclude[] |  | string | Array of data to exclude. By excluding âsourcesâ and âtracksâ, the api will not need to query kaltura, which greatly speeds up its response.sourcesDo not query kaltura for media_sourcestracksDo not query kaltura for media_tracksAllowed values:sources,tracks
+
+Field to sort on. Default is âtitleâ
+sorts on user_entered_title if available, title if not.
+sorts on the objectâs creation time.
+Allowed values:title,created_at
+Sort direction. Default is âascâ
+Allowed values:asc,desc
+Array of data to exclude. By excluding âsourcesâ and âtracksâ, the api will not need to query kaltura, which greatly speeds up its response.
+Do not query kaltura for media_sources
+Do not query kaltura for media_tracks
+Allowed values:sources,tracks
+curl https://<canvas>/api/v1/media_objects?exclude[]=sources&exclude[]=tracks \
+     -H 'Authorization: Bearer <token>'
+
+curl https://<canvas>/api/v1/courses/17/media_objects?exclude[]=sources&exclude[]=tracks \
+     -H 'Authorization: Bearer <token>'
+
+
+Update Media ObjectMediaObjectsController#update_media_object
+
+
+
+PUT /api/v1/media_objects/:media_object_id
+
+
+
+PUT /api/v1/media_attachments/:attachment_id

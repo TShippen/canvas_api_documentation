@@ -1,0 +1,76 @@
+Admins API
+
+
+Manage account role assignments
+
+
+An Admin object looks like:
+
+{
+  // The unique identifier for the account role/user assignment.
+  "id": 1023,
+  // The account role assigned. This can be 'AccountAdmin' or a user-defined role
+  // created by the Roles API.
+  "role": "AccountAdmin",
+  // The user the role is assigned to. See the Users API for details.
+  "user": null,
+  // The status of the account role/user assignment.
+  "workflow_state": "deleted"
+}
+
+
+Make an account adminAdminsController#create
+
+
+
+POST /api/v1/accounts/:account_id/admins
+
+Flag an existing user as an admin within the account.
+Parameter |  | Type | Description
+user_id | Required | integer | The id of the user to promote.
+role |  | string | DEPRECATEDThe userâs admin relationship with the account will becreated with the given role. Defaults to âAccountAdminâ.
+role_id |  | integer | The userâs admin relationship with the account will be created with the given role. Defaults to the built-in role for âAccountAdminâ.
+send_confirmation |  | boolean | Send a notification email to the new admin if true. Default is true.
+
+The id of the user to promote.
+The userâs admin relationship with the account will be
+created with the given role. Defaults to âAccountAdminâ.
+The userâs admin relationship with the account will be created with the given role. Defaults to the built-in role for âAccountAdminâ.
+Send a notification email to the new admin if true. Default is true.
+
+
+Remove account adminAdminsController#destroy
+
+
+
+DELETE /api/v1/accounts/:account_id/admins/:user_id
+
+Remove the rights associated with an account admin role from a user.
+Parameter |  | Type | Description
+role |  | string | DEPRECATEDAccount role to remove from the user.
+role_id | Required | integer | The id of the role representing the userâs admin relationship with the account.
+
+Account role to remove from the user.
+The id of the role representing the userâs admin relationship with the account.
+
+
+List account adminsAdminsController#index
+
+
+
+GET /api/v1/accounts/:account_id/admins
+
+A paginated list of the admins in the account
+Parameter |  | Type | Description
+user_id[] |  | [Integer] | Scope the results to those with user IDs equal to any of the IDs specified here.
+
+Scope the results to those with user IDs equal to any of the IDs specified here.
+
+
+List my admin rolesAdminsController#self_roles
+
+
+
+GET /api/v1/accounts/:account_id/admins/self
+
+A paginated list of the current userâs roles in the account. The results are the same as those returned by theList account adminsendpoint withuser_idset toself, except the âAdmins - Add / Removeâ permission is not required.

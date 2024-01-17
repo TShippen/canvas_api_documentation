@@ -1,0 +1,128 @@
+ePortfolios API
+
+
+
+
+An ePortfolio object looks like:
+
+{
+  // The database ID of the ePortfolio
+  "id": 1,
+  // The user ID to which the ePortfolio belongs
+  "user_id": 1,
+  // The name of the ePortfolio
+  "name": "My Academic Journey",
+  // Whether or not the ePortfolio is visible without authentication
+  "public": true,
+  // The creation timestamp for the ePortfolio
+  "created_at": "2021-09-20T18:59:37Z",
+  // The timestamp of the last time any of the ePortfolio attributes changed
+  "updated_at": "2021-09-20T18:59:37Z",
+  // The state of the ePortfolio. Either 'active' or 'deleted'
+  "workflow_state": "active",
+  // The timestamp when the ePortfolio was deleted, or else null
+  "deleted_at": "2021-09-20T18:59:37Z",
+  // A flag indicating whether the ePortfolio has been
+  // flagged or moderated as spam. One of 'flagged_as_possible_spam',
+  // 'marked_as_safe', 'marked_as_spam', or null
+  "spam_status": null
+}
+
+
+An ePortfolioPage object looks like:
+
+{
+  // The database ID of the ePortfolio
+  "id": 1,
+  // The ePortfolio ID to which the entry belongs
+  "eportfolio_id": 1,
+  // The positional order of the entry in the list
+  "position": 1,
+  // The name of the ePortfolio
+  "name": "My Academic Journey",
+  // The user entered content of the entry
+  "content": "A long time ago...",
+  // The creation timestamp for the ePortfolio
+  "created_at": "2021-09-20T18:59:37Z",
+  // The timestamp of the last time any of the ePortfolio attributes changed
+  "updated_at": "2021-09-20T18:59:37Z"
+}
+
+
+Get all ePortfolios for a UserEportfoliosApiController#index
+
+
+
+GET /api/v1/users/:user_id/eportfolios
+
+Get a list of all ePortfolios for the specified user.
+Parameter |  | Type | Description
+include[] |  | string | deletedInclude deleted ePortfolios. Only available to admins who canmoderate_user_content.Allowed values:deleted
+
+Include deleted ePortfolios. Only available to admins who can
+moderate_user_content.
+Allowed values:deleted
+
+
+Get an ePortfolioEportfoliosApiController#show
+
+
+
+GET /api/v1/eportfolios/:id
+
+Get details for a single ePortfolio.
+
+
+Delete an ePortfolioEportfoliosApiController#delete
+
+
+
+DELETE /api/v1/eportfolios/:id
+
+Mark an ePortfolio as deleted.
+
+
+Get ePortfolio PagesEportfoliosApiController#pages
+
+
+
+GET /api/v1/eportfolios/:eportfolio_id/pages
+
+Get details for the pages of an ePortfolio
+
+
+Moderate an ePortfolioEportfoliosApiController#moderate
+
+
+
+PUT /api/v1/eportfolios/:eportfolio_id/moderate
+
+Update the spam_status of an eportfolio. Only available to admins who can moderate_user_content.
+Parameter |  | Type | Description
+spam_status |  | string | The spam status for the ePortfolioAllowed values:marked_as_spam,marked_as_safe
+
+The spam status for the ePortfolio
+Allowed values:marked_as_spam,marked_as_safe
+
+
+Moderate all ePortfolios for a UserEportfoliosApiController#moderate_all
+
+
+
+PUT /api/v1/users/:user_id/eportfolios
+
+Update the spam_status for all active eportfolios of a user. Only available to admins who can moderate_user_content.
+Parameter |  | Type | Description
+spam_status |  | string | The spam status for all the ePortfoliosAllowed values:marked_as_spam,marked_as_safe
+
+The spam status for all the ePortfolios
+Allowed values:marked_as_spam,marked_as_safe
+
+
+Restore a deleted ePortfolioEportfoliosApiController#restore
+
+
+
+PUT /api/v1/eportfolios/:eportfolio_id/restore
+
+Restore an ePortfolio back to active that was previously deleted. Only available to admins who can moderate_user_content.

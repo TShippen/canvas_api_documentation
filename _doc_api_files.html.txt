@@ -1,0 +1,652 @@
+Files API
+
+
+An API for managing files and folders
+See the File Upload Documentation for details on the file upload workflow.
+
+
+A File object looks like:
+
+{
+  "id": 569,
+  "uuid": "SUj23659sdfASF35h265kf352YTdnC4",
+  "folder_id": 4207,
+  "display_name": "file.txt",
+  "filename": "file.txt",
+  "content-type": "text/plain",
+  "url": "http://www.example.com/files/569/download?download_frd=1&verifier=c6HdZmxOZa0Fiin2cbvZeI8I5ry7yqD7RChQzb6P",
+  // file size in bytes
+  "size": 43451,
+  "created_at": "2012-07-06T14:58:50Z",
+  "updated_at": "2012-07-06T14:58:50Z",
+  "unlock_at": "2012-07-07T14:58:50Z",
+  "locked": false,
+  "hidden": false,
+  "lock_at": "2012-07-20T14:58:50Z",
+  "hidden_for_user": false,
+  // Changes who can access the file. Valid options are 'inherit' (the default),
+  // 'course', 'institution', and 'public'. Only valid in course endpoints.
+  "visibility_level": "course",
+  "thumbnail_url": null,
+  "modified_at": "2012-07-06T14:58:50Z",
+  // simplified content-type mapping
+  "mime_class": "html",
+  // identifier for file in third-party transcoding service
+  "media_entry_id": "m-3z31gfpPf129dD3sSDF85SwSDFnwe",
+  "locked_for_user": false,
+  "lock_info": null,
+  "lock_explanation": "This assignment is locked until September 1 at 12:00am",
+  // optional: url to the document preview. This url is specific to the user
+  // making the api call. Only included in submission endpoints.
+  "preview_url": null
+}
+
+
+A Folder object looks like:
+
+{
+  "context_type": "Course",
+  "context_id": 1401,
+  "files_count": 0,
+  "position": 3,
+  "updated_at": "2012-07-06T14:58:50Z",
+  "folders_url": "https://www.example.com/api/v1/folders/2937/folders",
+  "files_url": "https://www.example.com/api/v1/folders/2937/files",
+  "full_name": "course files/11folder",
+  "lock_at": "2012-07-06T14:58:50Z",
+  "id": 2937,
+  "folders_count": 0,
+  "name": "11folder",
+  "parent_folder_id": 2934,
+  "created_at": "2012-07-06T14:58:50Z",
+  "unlock_at": null,
+  "hidden": false,
+  "hidden_for_user": false,
+  "locked": true,
+  "locked_for_user": false,
+  // If true, indicates this is a read-only folder containing files submitted to
+  // assignments
+  "for_submissions": false
+}
+
+
+An UsageRights object looks like:
+
+// Describes the copyright and license information for a File
+{
+  // Copyright line for the file
+  "legal_copyright": "(C) 2014 Incom Corporation Ltd",
+  // Justification for using the file in a Canvas course. Valid values are
+  // 'own_copyright', 'public_domain', 'used_by_permission', 'fair_use',
+  // 'creative_commons'
+  "use_justification": "creative_commons",
+  // License identifier for the file.
+  "license": "cc_by_sa",
+  // Readable license name
+  "license_name": "CC Attribution Share-Alike",
+  // Explanation of the action performed
+  "message": "4 files updated",
+  // List of ids of files that were updated
+  "file_ids": [1, 2, 3]
+}
+
+
+A License object looks like:
+
+{
+  // a short string identifying the license
+  "id": "cc_by_sa",
+  // the name of the license
+  "name": "CC Attribution ShareAlike",
+  // a link to the license text
+  "url": "http://creativecommons.org/licenses/by-sa/4.0"
+}
+
+
+Get quota informationFilesController#api_quota
+
+
+
+GET /api/v1/courses/:course_id/files/quota
+
+
+
+GET /api/v1/groups/:group_id/files/quota
+
+
+
+GET /api/v1/users/:user_id/files/quota
+
+Returns the total and used storage quota for the course, group, or user.
+curl 'https://<canvas>/api/v1/courses/1/files/quota' \
+      -H 'Authorization: Bearer <token>'
+{ "quota": 524288000, "quota_used": 402653184 }
+
+
+List filesFilesController#api_index
+
+
+
+GET /api/v1/courses/:course_id/files
+
+
+
+GET /api/v1/users/:user_id/files
+
+
+
+GET /api/v1/groups/:group_id/files
+
+
+
+GET /api/v1/folders/:id/files
+
+Returns the paginated list of files for the folder or course.
+Parameter |  | Type | Description
+content_types[] |  | string | Filter results by content-type. You can specify type/subtype pairs (e.g., âimage/jpegâ), or simply types (e.g., âimageâ, which will match âimage/gifâ, âimage/jpegâ, etc.).
+exclude_content_types[] |  | string | Exclude given content-types from your results. You can specify type/subtype pairs (e.g., âimage/jpegâ), or simply types (e.g., âimageâ, which will match âimage/gifâ, âimage/jpegâ, etc.).
+search_term |  | string | The partial name of the files to match and return.
+include[] |  | string | Array of additional information to include.âuserâthe user who uploaded the file or last edited its contentâusage_rightsâcopyright and license information for the file (see UsageRights)Allowed values:user
+only[] |  | Array | Array of information to restrict to. Overrides include[]ânamesâonly returns file name information
+sort |  | string | Sort results by this field. Defaults to ânameâ. Note that âsort=user` implies `include[]=user`.Allowed values:name,size,created_at,updated_at,content_type,user
+order |  | string | The sorting order. Defaults to âascâ.Allowed values:asc,desc
+
+Filter results by content-type. You can specify type/subtype pairs (e.g., âimage/jpegâ), or simply types (e.g., âimageâ, which will match âimage/gifâ, âimage/jpegâ, etc.).
+Exclude given content-types from your results. You can specify type/subtype pairs (e.g., âimage/jpegâ), or simply types (e.g., âimageâ, which will match âimage/gifâ, âimage/jpegâ, etc.).
+The partial name of the files to match and return.
+Array of additional information to include.
+the user who uploaded the file or last edited its content
+copyright and license information for the file (see UsageRights)
+Allowed values:user
+Array of information to restrict to. Overrides include[]
+only returns file name information
+Sort results by this field. Defaults to ânameâ. Note that âsort=user` implies `include[]=user`.
+Allowed values:name,size,created_at,updated_at,content_type,user
+The sorting order. Defaults to âascâ.
+Allowed values:asc,desc
+curl 'https://<canvas>/api/v1/folders/<folder_id>/files?content_types[]=image&content_types[]=text/plain \
+      -H 'Authorization: Bearer <token>'
+
+
+Get public inline preview urlFilesController#public_url
+
+
+
+GET /api/v1/files/:id/public_url
+
+Determine the URL that should be used for inline preview of the file.
+Parameter |  | Type | Description
+submission_id |  | integer | The id of the submission the file is associated with.  Provide this argument to gain access to a file that has been submitted to an assignment (Canvas will verify that the file belongs to the submission and the calling user has rights to view the submission).
+
+The id of the submission the file is associated with.  Provide this argument to gain access to a file that has been submitted to an assignment (Canvas will verify that the file belongs to the submission and the calling user has rights to view the submission).
+curl 'https://<canvas>/api/v1/files/1/public_url' \
+      -H 'Authorization: Bearer <token>'
+{ "public_url": "https://example-bucket.s3.amazonaws.com/example-namespace/attachments/1/example-filename?AWSAccessKeyId=example-key&Expires=1400000000&Signature=example-signature" }
+
+
+Get fileFilesController#api_show
+
+
+
+GET /api/v1/files/:id
+
+
+
+POST /api/v1/files/:id
+
+
+
+GET /api/v1/courses/:course_id/files/:id
+
+
+
+GET /api/v1/groups/:group_id/files/:id
+
+
+
+GET /api/v1/users/:user_id/files/:id
+
+Returns the standard attachment json object
+Parameter |  | Type | Description
+include[] |  | string | Array of additional information to include.âuserâthe user who uploaded the file or last edited its contentâusage_rightsâcopyright and license information for the file (see UsageRights)Allowed values:user
+replacement_chain_context_type |  | string | When a user replaces a file during upload, Canvas keeps track of the âreplacement chain.âInclude this parameter if you wish Canvas to follow the replacement chain if the requested file was deleted and replaced by another.Must be set to âcourseâ or âaccountâ. The âreplacement_chain_context_idâ parameter must also be included.
+replacement_chain_context_id |  | integer | When a user replaces a file during upload, Canvas keeps track of the âreplacement chain.âInclude this parameter if you wish Canvas to follow the replacement chain if the requested file was deleted and replaced by another.Indicates the context ID Canvas should use when following the âreplacement chain.â The âreplacement_chain_context_typeâ parameter must also be included.
+
+Array of additional information to include.
+the user who uploaded the file or last edited its content
+copyright and license information for the file (see UsageRights)
+Allowed values:user
+When a user replaces a file during upload, Canvas keeps track of the âreplacement chain.â
+Include this parameter if you wish Canvas to follow the replacement chain if the requested file was deleted and replaced by another.
+Must be set to âcourseâ or âaccountâ. The âreplacement_chain_context_idâ parameter must also be included.
+When a user replaces a file during upload, Canvas keeps track of the âreplacement chain.â
+Include this parameter if you wish Canvas to follow the replacement chain if the requested file was deleted and replaced by another.
+Indicates the context ID Canvas should use when following the âreplacement chain.â The âreplacement_chain_context_typeâ parameter must also be included.
+curl 'https://<canvas>/api/v1/files/<file_id>' \
+      -H 'Authorization: Bearer <token>'
+
+curl 'https://<canvas>/api/v1/courses/<course_id>/files/<file_id>' \
+      -H 'Authorization: Bearer <token>'
+
+
+Translate file referenceFilesController#file_ref
+
+
+
+GET /api/v1/courses/:course_id/files/file_ref/:migration_id
+
+Get information about a file from a course copy file reference
+curl https://<canvas>/api/v1/courses/1/files/file_ref/i567b573b77fab13a1a39937c24ae88f2 \
+     -H 'Authorization: Bearer <token>'
+
+
+Update fileFilesController#api_update
+
+
+
+PUT /api/v1/files/:id
+
+Update some settings on the specified file
+Parameter |  | Type | Description
+name |  | string | The new display name of the file, with a limit of 255 characters.
+parent_folder_id |  | string | The id of the folder to move this file into. The new folder must be in the same context as the original parent folder. If the file is in a context without folders this does not apply.
+on_duplicate |  | string | If the file is moved to a folder containing a file with the same name, or renamed to a name matching an existing file, the API call will fail unless this parameter is supplied.âoverwriteâReplace the existing file with the same nameârenameâAdd a qualifier to make the new filename uniqueAllowed values:overwrite,rename
+lock_at |  | DateTime | The datetime to lock the file at
+unlock_at |  | DateTime | The datetime to unlock the file at
+locked |  | boolean | Flag the file as locked
+hidden |  | boolean | Flag the file as hidden
+visibility_level |  | string | Configure which roles can access this file
+
+The new display name of the file, with a limit of 255 characters.
+The id of the folder to move this file into. The new folder must be in the same context as the original parent folder. If the file is in a context without folders this does not apply.
+If the file is moved to a folder containing a file with the same name, or renamed to a name matching an existing file, the API call will fail unless this parameter is supplied.
+Replace the existing file with the same name
+Add a qualifier to make the new filename unique
+Allowed values:overwrite,rename
+The datetime to lock the file at
+The datetime to unlock the file at
+Flag the file as locked
+Flag the file as hidden
+Configure which roles can access this file
+curl -X PUT 'https://<canvas>/api/v1/files/<file_id>' \
+     -F 'name=<new_name>' \
+     -F 'locked=true' \
+     -H 'Authorization: Bearer <token>'
+
+
+Delete fileFilesController#destroy
+
+
+
+DELETE /api/v1/files/:id
+
+Remove the specified file. Unlike most other DELETE endpoints, using this endpoint will result in comprehensive, irretrievable destruction of the file. It should be used with the âreplace` parameter set to true in cases where the file preview also needs to be destroyed (such as to remove files that violate privacy laws).
+Parameter |  | Type | Description
+replace |  | boolean | This action is irreversible. If replace is set to true the file contents will be replaced with a generic âfile has been removedâ file. This also destroys any previews that have been generated for the file. Must have manage files and become other users permissions
+
+This action is irreversible. If replace is set to true the file contents will be replaced with a generic âfile has been removedâ file. This also destroys any previews that have been generated for the file. Must have manage files and become other users permissions
+curl -X DELETE 'https://<canvas>/api/v1/files/<file_id>' \
+     -H 'Authorization: Bearer <token>'
+
+
+Get icon metadataFilesController#icon_metadata
+
+
+
+GET /api/v1/files/:id/icon_metadata
+
+Returns the icon maker file attachment metadata
+curl 'https://<canvas>/api/v1/courses/1/files/1/metadata' \
+      -H 'Authorization: Bearer <token>'
+{
+  "type":"image/svg+xml-icon-maker-icons",
+  "alt":"",
+  "shape":"square",
+  "size":"small",
+  "color":"#FFFFFF",
+  "outlineColor":"#65499D",
+  "outlineSize":"large",
+  "text":"Hello",
+  "textSize":"x-large",
+  "textColor":"#65499D",
+  "textBackgroundColor":"#FFFFFF",
+  "textPosition":"bottom-third",
+  "encodedImage":"data:image/svg+xml;base64,PH==",
+  "encodedImageType":"SingleColor",
+  "encodedImageName":"Health Icon",
+  "x":"50%",
+  "y":"50%",
+  "translateX":-54,
+  "translateY":-54,
+  "width":108,
+  "height":108,
+  "transform":"translate(-54,-54)"
+}
+
+
+Reset link verifierFilesController#reset_verifier
+
+
+
+POST /api/v1/files/:id/reset_verifier
+
+Resets the link verifier. Any existing links to the file using the previous hard-coded âverifierâ parameter will no longer automatically grant access.
+Must have manage files and become other users permissions
+curl -X POST 'https://<canvas>/api/v1/files/<file_id>/reset_verifier' \
+     -H 'Authorization: Bearer <token>'
+
+
+List foldersFoldersController#api_index
+
+
+
+GET /api/v1/folders/:id/folders
+
+Returns the paginated list of folders in the folder.
+curl 'https://<canvas>/api/v1/folders/<folder_id>/folders' \
+     -H 'Authorization: Bearer <token>'
+
+
+List all foldersFoldersController#list_all_folders
+
+
+
+GET /api/v1/courses/:course_id/folders
+
+
+
+GET /api/v1/users/:user_id/folders
+
+
+
+GET /api/v1/groups/:group_id/folders
+
+Returns the paginated list of all folders for the given context. This will be returned as a flat list containing all subfolders as well.
+curl 'https://<canvas>/api/v1/courses/<course_id>/folders' \
+     -H 'Authorization: Bearer <token>'
+
+
+Resolve pathFoldersController#resolve_path
+
+
+
+GET /api/v1/courses/:course_id/folders/by_path/*full_path
+
+
+
+GET /api/v1/courses/:course_id/folders/by_path
+
+
+
+GET /api/v1/users/:user_id/folders/by_path/*full_path
+
+
+
+GET /api/v1/users/:user_id/folders/by_path
+
+
+
+GET /api/v1/groups/:group_id/folders/by_path/*full_path
+
+
+
+GET /api/v1/groups/:group_id/folders/by_path
+
+Given the full path to a folder, returns a list of all Folders in the path hierarchy, starting at the root folder, and ending at the requested folder. The given path is relative to the contextâs root folder and does not include the root folderâs name (e.g., âcourse filesâ). If an empty path is given, the contextâs root folder alone is returned. Otherwise, if no folder exists with the given full path, a Not Found error is returned.
+curl 'https://<canvas>/api/v1/courses/<course_id>/folders/by_path/foo/bar/baz' \
+     -H 'Authorization: Bearer <token>'
+
+
+Get folderFoldersController#show
+
+
+
+GET /api/v1/courses/:course_id/folders/:id
+
+
+
+GET /api/v1/users/:user_id/folders/:id
+
+
+
+GET /api/v1/groups/:group_id/folders/:id
+
+
+
+GET /api/v1/folders/:id
+
+Returns the details for a folder
+You can get the root folder from a context by using ârootâ as the :id. For example, you could get the root folder for a course like:
+curl 'https://<canvas>/api/v1/courses/1337/folders/root' \
+     -H 'Authorization: Bearer <token>'
+curl 'https://<canvas>/api/v1/folders/<folder_id>' \
+     -H 'Authorization: Bearer <token>'
+
+
+Update folderFoldersController#update
+
+
+
+PUT /api/v1/folders/:id
+
+Updates a folder
+Parameter |  | Type | Description
+name |  | string | The new name of the folder
+parent_folder_id |  | string | The id of the folder to move this folder into. The new folder must be in the same context as the original parent folder.
+lock_at |  | DateTime | The datetime to lock the folder at
+unlock_at |  | DateTime | The datetime to unlock the folder at
+locked |  | boolean | Flag the folder as locked
+hidden |  | boolean | Flag the folder as hidden
+position |  | integer | Set an explicit sort position for the folder
+
+The new name of the folder
+The id of the folder to move this folder into. The new folder must be in the same context as the original parent folder.
+The datetime to lock the folder at
+The datetime to unlock the folder at
+Flag the folder as locked
+Flag the folder as hidden
+Set an explicit sort position for the folder
+curl -XPUT 'https://<canvas>/api/v1/folders/<folder_id>' \
+     -F 'name=<new_name>' \
+     -F 'locked=true' \
+     -H 'Authorization: Bearer <token>'
+
+
+Create folderFoldersController#create
+
+
+
+POST /api/v1/courses/:course_id/folders
+
+
+
+POST /api/v1/users/:user_id/folders
+
+
+
+POST /api/v1/groups/:group_id/folders
+
+
+
+POST /api/v1/folders/:folder_id/folders
+
+Creates a folder in the specified context
+Parameter |  | Type | Description
+name | Required | string | The name of the folder
+parent_folder_id |  | string | The id of the folder to store the new folder in. An error will be returned if this does not correspond to an existing folder. If this and parent_folder_path are sent an error will be returned. If neither is given, a default folder will be used.
+parent_folder_path |  | string | The path of the folder to store the new folder in. The path separator is the forward slash â/`, never a back slash. The parent folder will be created if it does not already exist. This parameter only applies to new folders in a context that has folders, such as a user, a course, or a group. If this and parent_folder_id are sent an error will be returned. If neither is given, a default folder will be used.
+lock_at |  | DateTime | The datetime to lock the folder at
+unlock_at |  | DateTime | The datetime to unlock the folder at
+locked |  | boolean | Flag the folder as locked
+hidden |  | boolean | Flag the folder as hidden
+position |  | integer | Set an explicit sort position for the folder
+
+The name of the folder
+The id of the folder to store the new folder in. An error will be returned if this does not correspond to an existing folder. If this and parent_folder_path are sent an error will be returned. If neither is given, a default folder will be used.
+The path of the folder to store the new folder in. The path separator is the forward slash â/`, never a back slash. The parent folder will be created if it does not already exist. This parameter only applies to new folders in a context that has folders, such as a user, a course, or a group. If this and parent_folder_id are sent an error will be returned. If neither is given, a default folder will be used.
+The datetime to lock the folder at
+The datetime to unlock the folder at
+Flag the folder as locked
+Flag the folder as hidden
+Set an explicit sort position for the folder
+curl 'https://<canvas>/api/v1/folders/<folder_id>/folders' \
+     -F 'name=<new_name>' \
+     -F 'locked=true' \
+     -H 'Authorization: Bearer <token>'
+curl 'https://<canvas>/api/v1/courses/<course_id>/folders' \
+     -F 'name=<new_name>' \
+     -F 'locked=true' \
+     -H 'Authorization: Bearer <token>'
+
+
+Delete folderFoldersController#api_destroy
+
+
+
+DELETE /api/v1/folders/:id
+
+Remove the specified folder. You can only delete empty folders unless you set the âforceâ flag
+Parameter |  | Type | Description
+force |  | boolean | Set to âtrueâ to allow deleting a non-empty folder
+
+Set to âtrueâ to allow deleting a non-empty folder
+curl -X DELETE 'https://<canvas>/api/v1/folders/<folder_id>' \
+     -H 'Authorization: Bearer <token>'
+
+
+Upload a fileFoldersController#create_file
+
+
+
+POST /api/v1/folders/:folder_id/files
+
+Upload a file to a folder.
+This API endpoint is the first step in uploading a file. See theFile Upload Documentationfor details on the file upload workflow.
+Only those with the âManage Filesâ permission on a course or group can upload files to a folder in that course or group.
+
+
+Copy a fileFoldersController#copy_file
+
+
+
+POST /api/v1/folders/:dest_folder_id/copy_file
+
+Copy a file from elsewhere in Canvas into a folder.
+Copying a file across contexts (between courses and users) is permitted, but the source and destination must belong to the same institution.
+Parameter |  | Type | Description
+source_file_id | Required | string | The id of the source file
+on_duplicate |  | string | What to do if a file with the same name already exists at the destination. If such a file exists and this parameter is not given, the call will fail.âoverwriteâReplace an existing file with the same nameârenameâAdd a qualifier to make the new filename uniqueAllowed values:overwrite,rename
+
+The id of the source file
+What to do if a file with the same name already exists at the destination. If such a file exists and this parameter is not given, the call will fail.
+Replace an existing file with the same name
+Add a qualifier to make the new filename unique
+Allowed values:overwrite,rename
+curl 'https://<canvas>/api/v1/folders/123/copy_file' \
+     -H 'Authorization: Bearer <token>'
+     -F 'source_file_id=456'
+
+
+Copy a folderFoldersController#copy_folder
+
+
+
+POST /api/v1/folders/:dest_folder_id/copy_folder
+
+Copy a folder (and its contents) from elsewhere in Canvas into a folder.
+Copying a folder across contexts (between courses and users) is permitted, but the source and destination must belong to the same institution. If the source and destination folders are in the same context, the source folder may not contain the destination folder. A folder will be renamed at its destination if another folder with the same name already exists.
+Parameter |  | Type | Description
+source_folder_id | Required | string | The id of the source folder
+
+The id of the source folder
+curl 'https://<canvas>/api/v1/folders/123/copy_folder' \
+     -H 'Authorization: Bearer <token>'
+     -F 'source_file_id=789'
+
+
+Get uploaded media folder for userFoldersController#media_folder
+
+
+
+GET /api/v1/courses/:course_id/folders/media
+
+
+
+GET /api/v1/groups/:group_id/folders/media
+
+Returns the details for a designated upload folder that the user has rights to upload to, and creates it if it doesnât exist.
+If the current user does not have the permissions to manage files in the course or group, the folder will belong to the current user directly.
+curl 'https://<canvas>/api/v1/courses/1337/folders/media' \
+     -H 'Authorization: Bearer <token>'
+
+
+Set usage rightsUsageRightsController#set_usage_rights
+
+
+
+PUT /api/v1/courses/:course_id/usage_rights
+
+
+
+PUT /api/v1/groups/:group_id/usage_rights
+
+
+
+PUT /api/v1/users/:user_id/usage_rights
+
+Sets copyright and license information for one or more files
+Parameter |  | Type | Description
+file_ids[] | Required | string | List of ids of files to set usage rights for.
+folder_ids[] |  | string | List of ids of folders to search for files to set usage rights for. Note that new files uploaded to these folders do not automatically inherit these rights.
+publish |  | boolean | Whether the file(s) or folder(s) should be published on save, provided that usage rights have been specified (set to âtrue` to publish on save).
+usage_rights[use_justification] | Required | string | The intellectual property justification for using the files in CanvasAllowed values:own_copyright,used_by_permission,fair_use,public_domain,creative_commons
+usage_rights[legal_copyright] |  | string | The legal copyright line for the files
+usage_rights[license] |  | string | The license that applies to the files. See theList licenses endpointfor the supported license types.
+
+List of ids of files to set usage rights for.
+List of ids of folders to search for files to set usage rights for. Note that new files uploaded to these folders do not automatically inherit these rights.
+Whether the file(s) or folder(s) should be published on save, provided that usage rights have been specified (set to âtrue` to publish on save).
+The intellectual property justification for using the files in Canvas
+Allowed values:own_copyright,used_by_permission,fair_use,public_domain,creative_commons
+The legal copyright line for the files
+The license that applies to the files. See theList licenses endpointfor the supported license types.
+
+
+Remove usage rightsUsageRightsController#remove_usage_rights
+
+
+
+DELETE /api/v1/courses/:course_id/usage_rights
+
+
+
+DELETE /api/v1/groups/:group_id/usage_rights
+
+
+
+DELETE /api/v1/users/:user_id/usage_rights
+
+Removes copyright and license information associated with one or more files
+Parameter |  | Type | Description
+file_ids[] | Required | string | List of ids of files to remove associated usage rights from.
+folder_ids[] |  | string | List of ids of folders. Usage rights will be removed from all files in these folders.
+
+List of ids of files to remove associated usage rights from.
+List of ids of folders. Usage rights will be removed from all files in these folders.
+
+
+List licensesUsageRightsController#licenses
+
+
+
+GET /api/v1/courses/:course_id/content_licenses
+
+
+
+GET /api/v1/groups/:group_id/content_licenses
+
+
+
+GET /api/v1/users/:user_id/content_licenses
+
+A paginated list of licenses that can be applied

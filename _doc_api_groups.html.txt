@@ -1,0 +1,441 @@
+Groups API
+
+
+Groups serve as the data for a few different ideas in Canvas.  The first is
+that they can be a community in the canvas network.  The second is that they
+can be organized by students in a course, for study or communication (but not
+grading).  The third is that they can be organized by teachers or account
+administrators for the purpose of projects, assignments, and grading.  This
+last kind of group is always part of a group category, which adds the
+restriction that a user may only be a member of one group per category.
+All of these types of groups function similarly, and can be the parent
+context for many other types of functionality and interaction, such as
+collections, discussions, wikis, and shared files.
+Group memberships are the objects that tie users and groups together.
+
+
+A Group object looks like:
+
+{
+  // The ID of the group.
+  "id": 17,
+  // The display name of the group.
+  "name": "Math Group 1",
+  // A description of the group. This is plain text.
+  "description": null,
+  // Whether or not the group is public.  Currently only community groups can be
+  // made public.  Also, once a group has been set to public, it cannot be changed
+  // back to private.
+  "is_public": false,
+  // Whether or not the current user is following this group.
+  "followed_by_user": false,
+  // How people are allowed to join the group.  For all groups except for
+  // community groups, the user must share the group's parent course or account. 
+  // For student organized or community groups, where a user can be a member of as
+  // many or few as they want, the applicable levels are
+  // 'parent_context_auto_join', 'parent_context_request', and 'invitation_only'. 
+  // For class groups, where students are divided up and should only be part of
+  // one group of the category, this value will always be 'invitation_only', and
+  // is not relevant. * If 'parent_context_auto_join', anyone can join and will be
+  // automatically accepted. * If 'parent_context_request', anyone  can request to
+  // join, which must be approved by a group moderator. * If 'invitation_only',
+  // only those how have received an invitation my join the group, by accepting
+  // that invitation.
+  "join_level": "invitation_only",
+  // The number of members currently in the group
+  "members_count": 0,
+  // The url of the group's avatar
+  "avatar_url": "https://<canvas>/files/avatar_image.png",
+  // The course or account that the group belongs to. The pattern here is that
+  // whatever the context_type is, there will be an _id field named after that
+  // type. So if instead context_type was 'account', the course_id field would be
+  // replaced by an account_id field.
+  "context_type": "Course",
+  "course_id": 3,
+  // Certain types of groups have special role designations. Currently, these
+  // include: 'communities', 'student_organized', and 'imported'. Regular
+  // course/account groups have a role of null.
+  "role": null,
+  // The ID of the group's category.
+  "group_category_id": 4,
+  // The SIS ID of the group. Only included if the user has permission to view SIS
+  // information.
+  "sis_group_id": "group4a",
+  // The id of the SIS import if created through SIS. Only included if the user
+  // has permission to manage SIS information.
+  "sis_import_id": 14,
+  // the storage quota for the group, in megabytes
+  "storage_quota_mb": 50,
+  // optional: the permissions the user has for the group. returned only for a
+  // single group and include[]=permissions
+  "permissions": {"create_discussion_topic":true,"create_announcement":true},
+  // optional: A list of users that are members in the group. Returned only if
+  // include[]=users. WARNING: this collection's size is capped (if there are an
+  // extremely large number of users in the group (thousands) not all of them will
+  // be returned).  If you need to capture all the users in a group with certainty
+  // consider using the paginated /api/v1/groups/<group_id>/memberships endpoint.
+  "users": null
+}
+
+
+A GroupMembership object looks like:
+
+{
+  // The id of the membership object
+  "id": 92,
+  // The id of the group object to which the membership belongs
+  "group_id": 17,
+  // The id of the user object to which the membership belongs
+  "user_id": 3,
+  // The current state of the membership. Current possible values are 'accepted',
+  // 'invited', and 'requested'
+  "workflow_state": "accepted",
+  // Whether or not the user is a moderator of the group (the must also be an
+  // active member of the group to moderate)
+  "moderator": true,
+  // optional: whether or not the record was just created on a create call (POST),
+  // i.e. was the user just added to the group, or was the user already a member
+  "just_created": true,
+  // The id of the SIS import if created through SIS. Only included if the user
+  // has permission to manage SIS information.
+  "sis_import_id": 4
+}
+
+
+List your groupsGroupsController#index
+
+
+
+GET /api/v1/users/self/groups
+
+Returns a paginated list of active groups for the current user.
+Parameter |  | Type | Description
+context_type |  | string | Only include groups that are in this type of context.Allowed values:Account,Course
+include[] |  | string | âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.Allowed values:tabs
+
+Only include groups that are in this type of context.
+Allowed values:Account,Course
+âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.
+Allowed values:tabs
+curl https://<canvas>/api/v1/users/self/groups?context_type=Account \
+     -H 'Authorization: Bearer <token>'
+
+
+List the groups available in a context.GroupsController#context_index
+
+
+
+GET /api/v1/accounts/:account_id/groups
+
+
+
+GET /api/v1/courses/:course_id/groups
+
+Returns the paginated list of active groups in the given context that are visible to user.
+Parameter |  | Type | Description
+only_own_groups |  | boolean | Will only include groups that the user belongs to if this is set
+include[] |  | string | âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.Allowed values:tabs
+
+Will only include groups that the user belongs to if this is set
+âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.
+Allowed values:tabs
+curl https://<canvas>/api/v1/courses/1/groups \
+     -H 'Authorization: Bearer <token>'
+
+
+Get a single groupGroupsController#show
+
+
+
+GET /api/v1/groups/:group_id
+
+Returns the data for a single group, or a 401 if the caller doesnât have the rights to see it.
+Parameter |  | Type | Description
+include[] |  | string | âpermissionsâ: Include permissions the current user has for the group.âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.Allowed values:permissions,tabs
+
+âpermissionsâ: Include permissions the current user has for the group.
+âtabsâ: Include the list of tabs configured for each group.  See theList available tabs APIfor more information.
+Allowed values:permissions,tabs
+curl https://<canvas>/api/v1/groups/<group_id> \
+     -H 'Authorization: Bearer <token>'
+
+
+Create a groupGroupsController#create
+
+
+
+POST /api/v1/groups
+
+
+
+POST /api/v1/group_categories/:group_category_id/groups
+
+Creates a new group. Groups created using the â/api/v1/groups/â endpoint will be community groups.
+Parameter |  | Type | Description
+name |  | string | The name of the group
+description |  | string | A description of the group
+is_public |  | boolean | whether the group is public (applies only to community groups)
+join_level |  | string | no descriptionAllowed values:parent_context_auto_join,parent_context_request,invitation_only
+storage_quota_mb |  | integer | The allowed file storage for the group, in megabytes. This parameter is ignored if the caller does not have the manage_storage_quotas permission.
+sis_group_id |  | string | The sis ID of the group. Must have manage_sis permission to set.
+
+The name of the group
+A description of the group
+whether the group is public (applies only to community groups)
+no description
+Allowed values:parent_context_auto_join,parent_context_request,invitation_only
+The allowed file storage for the group, in megabytes. This parameter is ignored if the caller does not have the manage_storage_quotas permission.
+The sis ID of the group. Must have manage_sis permission to set.
+curl https://<canvas>/api/v1/groups \
+     -F 'name=Math Teachers' \
+     -F 'description=A place to gather resources for our classes.' \
+     -F 'is_public=true' \
+     -F 'join_level=parent_context_auto_join' \
+     -H 'Authorization: Bearer <token>'
+
+
+Edit a groupGroupsController#update
+
+
+
+PUT /api/v1/groups/:group_id
+
+Modifies an existing group.  Note that to set an avatar image for the group, you must first upload the image file to the group, and the use the id in the response as the argument to this function.  See theFile Upload Documentationfor details on the file upload workflow.
+Parameter |  | Type | Description
+name |  | string | The name of the group
+description |  | string | A description of the group
+is_public |  | boolean | Whether the group is public (applies only to community groups). Currently you cannot set a group back to private once it has been made public.
+join_level |  | string | no descriptionAllowed values:parent_context_auto_join,parent_context_request,invitation_only
+avatar_id |  | integer | The id of the attachment previously uploaded to the group that you would like to use as the avatar image for this group.
+storage_quota_mb |  | integer | The allowed file storage for the group, in megabytes. This parameter is ignored if the caller does not have the manage_storage_quotas permission.
+members[] |  | string | An array of user ids for users you would like in the group. Users not in the group will be sent invitations. Existing group members who arenât in the list will be removed from the group.
+sis_group_id |  | string | The sis ID of the group. Must have manage_sis permission to set.
+override_sis_stickiness |  | boolean | Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+
+The name of the group
+A description of the group
+Whether the group is public (applies only to community groups). Currently you cannot set a group back to private once it has been made public.
+no description
+Allowed values:parent_context_auto_join,parent_context_request,invitation_only
+The id of the attachment previously uploaded to the group that you would like to use as the avatar image for this group.
+The allowed file storage for the group, in megabytes. This parameter is ignored if the caller does not have the manage_storage_quotas permission.
+An array of user ids for users you would like in the group. Users not in the group will be sent invitations. Existing group members who arenât in the list will be removed from the group.
+The sis ID of the group. Must have manage_sis permission to set.
+Default is true. If false, any fields containing âstickyâ changes will not be updated. See SIS CSV Format documentation for information on which fields can have SIS stickiness
+curl https://<canvas>/api/v1/groups/<group_id> \
+     -X PUT \
+     -F 'name=Algebra Teachers' \
+     -F 'join_level=parent_context_request' \
+     -H 'Authorization: Bearer <token>'
+
+
+Delete a groupGroupsController#destroy
+
+
+
+DELETE /api/v1/groups/:group_id
+
+Deletes a group and removes all members.
+curl https://<canvas>/api/v1/groups/<group_id> \
+     -X DELETE \
+     -H 'Authorization: Bearer <token>'
+
+
+Invite others to a groupGroupsController#invite
+
+
+
+POST /api/v1/groups/:group_id/invite
+
+Sends an invitation to all supplied email addresses which will allow the receivers to join the group.
+Parameter |  | Type | Description
+invitees[] | Required | string | An array of email addresses to be sent invitations.
+
+An array of email addresses to be sent invitations.
+curl https://<canvas>/api/v1/groups/<group_id>/invite \
+     -F 'invitees[]=leonard@example.com' \
+     -F 'invitees[]=sheldon@example.com' \
+     -H 'Authorization: Bearer <token>'
+
+
+List group's usersGroupsController#users
+
+
+
+GET /api/v1/groups/:group_id/users
+
+Returns a paginated list of users in the group.
+Parameter |  | Type | Description
+search_term |  | string | The partial name or full ID of the users to match and return in the results list. Must be at least 3 characters.
+include[] |  | string | âavatar_urlâ: Include usersâ avatar_urls.Allowed values:avatar_url
+exclude_inactive |  | boolean | Whether to filter out inactive users from the results. Defaults to false unless explicitly provided.
+
+The partial name or full ID of the users to match and return in the results list. Must be at least 3 characters.
+âavatar_urlâ: Include usersâ avatar_urls.
+Allowed values:avatar_url
+Whether to filter out inactive users from the results. Defaults to false unless explicitly provided.
+curl https://<canvas>/api/v1/groups/1/users \
+     -H 'Authorization: Bearer <token>'
+
+
+Upload a fileGroupsController#create_file
+
+
+
+POST /api/v1/groups/:group_id/files
+
+Upload a file to the group.
+This API endpoint is the first step in uploading a file to a group. See theFile Upload Documentationfor details on the file upload workflow.
+Only those with the âManage Filesâ permission on a group can upload files to the group. By default, this is anybody participating in the group, or any admin over the group.
+
+
+Preview processed htmlGroupsController#preview_html
+
+
+
+POST /api/v1/groups/:group_id/preview_html
+
+Preview html content processed for this group
+Parameter |  | Type | Description
+html |  | string | The html content to process
+
+The html content to process
+curl https://<canvas>/api/v1/groups/<group_id>/preview_html \
+     -F 'html=<p><badhtml></badhtml>processed html</p>' \
+     -H 'Authorization: Bearer <token>'
+{
+  "html": "<p>processed html</p>"
+}
+
+
+Group activity streamGroupsController#activity_stream
+
+
+
+GET /api/v1/groups/:group_id/activity_stream
+
+Returns the current userâs group-specific activity stream, paginated.
+For full documentation, see the API documentation for the user activity stream, in the user api.
+
+
+Group activity stream summaryGroupsController#activity_stream_summary
+
+
+
+GET /api/v1/groups/:group_id/activity_stream/summary
+
+Returns a summary of the current userâs group-specific activity stream.
+For full documentation, see the API documentation for the user activity stream summary, in the user api.
+
+
+PermissionsGroupsController#permissions
+
+
+
+GET /api/v1/groups/:group_id/permissions
+
+Returns permission information for the calling user in the given group. See also theAccountandCoursecounterparts.
+Parameter |  | Type | Description
+permissions[] |  | string | List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+
+List of permissions to check against the authenticated user. Permission names are documented in theCreate a roleendpoint.
+curl https://<canvas>/api/v1/groups/<group_id>/permissions \
+  -H 'Authorization: Bearer <token>' \
+  -d 'permissions[]=read_roster'
+  -d 'permissions[]=send_messages_all'
+{'read_roster': 'true', 'send_messages_all': 'false'}
+
+
+List group membershipsGroupMembershipsController#index
+
+
+
+GET /api/v1/groups/:group_id/memberships
+
+A paginated list of the members of a group.
+Parameter |  | Type | Description
+filter_states[] |  | string | Only list memberships with the given workflow_states. By default it will return all memberships.Allowed values:accepted,invited,requested
+
+Only list memberships with the given workflow_states. By default it will return all memberships.
+Allowed values:accepted,invited,requested
+curl https://<canvas>/api/v1/groups/<group_id>/memberships \
+     -F 'filter_states[]=invited&filter_states[]=requested' \
+     -H 'Authorization: Bearer <token>'
+
+
+Get a single group membershipGroupMembershipsController#show
+
+
+
+GET /api/v1/groups/:group_id/memberships/:membership_id
+
+
+
+GET /api/v1/groups/:group_id/users/:user_id
+
+Returns the group membership with the given membership id or user id.
+curl https://<canvas>/api/v1/groups/<group_id>/memberships/<membership_id> \
+     -H 'Authorization: Bearer <token>'
+curl https://<canvas>/api/v1/groups/<group_id>/users/<user_id> \
+     -H 'Authorization: Bearer <token>'
+
+
+Create a membershipGroupMembershipsController#create
+
+
+
+POST /api/v1/groups/:group_id/memberships
+
+Join, or request to join, a group, depending on the join_level of the group.  If the membership or join request already exists, then it is simply returned
+Parameter |  | Type | Description
+user_id |  | string | no description
+
+no description
+curl https://<canvas>/api/v1/groups/<group_id>/memberships \
+     -F 'user_id=self'
+     -H 'Authorization: Bearer <token>'
+
+
+Update a membershipGroupMembershipsController#update
+
+
+
+PUT /api/v1/groups/:group_id/memberships/:membership_id
+
+
+
+PUT /api/v1/groups/:group_id/users/:user_id
+
+Accept a membership request, or add/remove moderator rights.
+Parameter |  | Type | Description
+workflow_state |  | string | Currently, the only allowed value is âacceptedâAllowed values:accepted
+moderator |  | string | no description
+
+Currently, the only allowed value is âacceptedâ
+Allowed values:accepted
+no description
+curl https://<canvas>/api/v1/groups/<group_id>/memberships/<membership_id> \
+     -F 'moderator=true'
+     -H 'Authorization: Bearer <token>'
+curl https://<canvas>/api/v1/groups/<group_id>/users/<user_id> \
+     -F 'moderator=true'
+     -H 'Authorization: Bearer <token>'
+
+
+Leave a groupGroupMembershipsController#destroy
+
+
+
+DELETE /api/v1/groups/:group_id/memberships/:membership_id
+
+
+
+DELETE /api/v1/groups/:group_id/users/:user_id
+
+Leave a group if you are allowed to leave (some groups, such as sets of course groups created by teachers, cannot be left). You may also use âselfâ in place of a membership_id.
+curl https://<canvas>/api/v1/groups/<group_id>/memberships/<membership_id> \
+     -X DELETE \
+     -H 'Authorization: Bearer <token>'
+curl https://<canvas>/api/v1/groups/<group_id>/users/<user_id> \
+     -X DELETE \
+     -H 'Authorization: Bearer <token>'
